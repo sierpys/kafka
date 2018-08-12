@@ -15,6 +15,10 @@
 
 import org.ajoberstar.grgit.Grgit
 
+subprojects {
+  task allDeps(type: DependencyReportTask) {}
+}
+
 buildscript {
   repositories {
     mavenCentral()
@@ -550,6 +554,8 @@ project(':core') {
     compile libs.slf4jApi
     compile(libs.zkclient) {
       exclude module: 'zookeeper'
+      exclude module: 'slf4j-log4j12'
+      exclude module: 'log4j'
     }
     compile(libs.zookeeper) {
       exclude module: 'slf4j-log4j12'
