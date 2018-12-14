@@ -34,17 +34,21 @@ public abstract class AbstractRecords implements Records {
 
     @Override
     public boolean hasMatchingMagic(byte magic) {
-        for (RecordBatch batch : batches())
-            if (batch.magic() != magic)
+        for (RecordBatch batch : batches()) {
+            if (batch.magic() != magic) {
                 return false;
+            }
+        }
         return true;
     }
 
     @Override
     public boolean hasCompatibleMagic(byte magic) {
-        for (RecordBatch batch : batches())
-            if (batch.magic() > magic)
+        for (RecordBatch batch : batches()) {
+            if (batch.magic() > magic) {
                 return false;
+            }
+        }
         return true;
     }
 
@@ -69,8 +73,9 @@ public abstract class AbstractRecords implements Records {
 
             @Override
             protected Record makeNext() {
-                if (records != null && records.hasNext())
+                if (records != null && records.hasNext()) {
                     return records.next();
+                }
 
                 if (batches.hasNext()) {
                     records = batches.next().iterator();
@@ -88,8 +93,9 @@ public abstract class AbstractRecords implements Records {
                                           Iterable<Record> records) {
         int size = 0;
         if (magic <= RecordBatch.MAGIC_VALUE_V1) {
-            for (Record record : records)
+            for (Record record : records) {
                 size += Records.LOG_OVERHEAD + LegacyRecord.recordSize(magic, record.key(), record.value());
+            }
         } else {
             size = DefaultRecordBatch.sizeInBytes(baseOffset, records);
         }
@@ -101,8 +107,9 @@ public abstract class AbstractRecords implements Records {
                                           Iterable<SimpleRecord> records) {
         int size = 0;
         if (magic <= RecordBatch.MAGIC_VALUE_V1) {
-            for (SimpleRecord record : records)
+            for (SimpleRecord record : records) {
                 size += Records.LOG_OVERHEAD + LegacyRecord.recordSize(magic, record.key(), record.value());
+            }
         } else {
             size = DefaultRecordBatch.sizeInBytes(records);
         }
@@ -127,12 +134,13 @@ public abstract class AbstractRecords implements Records {
      */
     public static int estimateSizeInBytesUpperBound(byte magic, CompressionType compressionType, ByteBuffer key,
                                                     ByteBuffer value, Header[] headers) {
-        if (magic >= RecordBatch.MAGIC_VALUE_V2)
+        if (magic >= RecordBatch.MAGIC_VALUE_V2) {
             return DefaultRecordBatch.estimateBatchSizeUpperBound(key, value, headers);
-        else if (compressionType != CompressionType.NONE)
+        } else if (compressionType != CompressionType.NONE) {
             return Records.LOG_OVERHEAD + LegacyRecord.recordOverhead(magic) + LegacyRecord.recordSize(magic, key, value);
-        else
+        } else {
             return Records.LOG_OVERHEAD + LegacyRecord.recordSize(magic, key, value);
+        }
     }
 
     /**

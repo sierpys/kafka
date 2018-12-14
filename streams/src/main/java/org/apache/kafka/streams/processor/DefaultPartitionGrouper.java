@@ -48,6 +48,7 @@ public class DefaultPartitionGrouper implements PartitionGrouper {
      * @param metadata      metadata of the consuming cluster
      * @return The map from generated task ids to the assigned partitions
      */
+    @Override
     public Map<TaskId, Set<TopicPartition>> partitionGroups(Map<Integer, Set<String>> topicGroups, Cluster metadata) {
         Map<TaskId, Set<TopicPartition>> groups = new HashMap<>();
 
@@ -90,8 +91,9 @@ public class DefaultPartitionGrouper implements PartitionGrouper {
                 return StreamsPartitionAssignor.NOT_AVAILABLE;
             } else {
                 int numPartitions = partitions.size();
-                if (numPartitions > maxNumPartitions)
+                if (numPartitions > maxNumPartitions) {
                     maxNumPartitions = numPartitions;
+                }
             }
         }
         return maxNumPartitions;

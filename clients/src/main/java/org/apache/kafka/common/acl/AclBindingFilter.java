@@ -90,8 +90,12 @@ public class AclBindingFilter {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         AclBindingFilter that = (AclBindingFilter) o;
         return Objects.equals(patternFilter, that.patternFilter) &&
             Objects.equals(entryFilter, that.entryFilter);
@@ -110,8 +114,9 @@ public class AclBindingFilter {
      */
     public String findIndefiniteField() {
         String indefinite = patternFilter.findIndefiniteField();
-        if (indefinite != null)
+        if (indefinite != null) {
             return indefinite;
+        }
         return entryFilter.findIndefiniteField();
     }
 

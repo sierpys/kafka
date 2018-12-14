@@ -1557,10 +1557,11 @@ public class InternalTopologyBuilder {
 
         @Override
         public String topic() {
-            if (topicNameExtractor instanceof StaticTopicNameExtractor)
+            if (topicNameExtractor instanceof StaticTopicNameExtractor) {
                 return ((StaticTopicNameExtractor) topicNameExtractor).topicName;
-            else
+            } else {
                 return null;
+            }
         }
 
         @Override

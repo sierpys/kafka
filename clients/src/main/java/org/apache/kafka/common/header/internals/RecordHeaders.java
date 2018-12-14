@@ -54,8 +54,9 @@ public class RecordHeaders implements Headers {
             this.headers = new ArrayList<>((Collection<Header>) headers);
         } else {
             this.headers = new ArrayList<>();
-            for (Header header : headers)
+            for (Header header : headers) {
                 this.headers.add(header);
+            }
         }
     }
 
@@ -116,6 +117,7 @@ public class RecordHeaders implements Headers {
         this.isReadOnly = true;
     }
 
+    @Override
     public Header[] toArray() {
         return headers.isEmpty() ? Record.EMPTY_HEADERS : headers.toArray(new Header[headers.size()]);
     }
@@ -139,6 +141,7 @@ public class RecordHeaders implements Headers {
                 return original.hasNext();
             }
 
+            @Override
             public Header next() {
                 return original.next();
             }
@@ -188,6 +191,7 @@ public class RecordHeaders implements Headers {
             this.key = key;
         }
         
+        @Override
         protected Header makeNext() {
             while (true) {
                 if (original.hasNext()) {

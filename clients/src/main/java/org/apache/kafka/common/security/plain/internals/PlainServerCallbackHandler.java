@@ -47,21 +47,22 @@ public class PlainServerCallbackHandler implements AuthenticateCallbackHandler {
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
         String username = null;
         for (Callback callback: callbacks) {
-            if (callback instanceof NameCallback)
+            if (callback instanceof NameCallback) {
                 username = ((NameCallback) callback).getDefaultName();
-            else if (callback instanceof PlainAuthenticateCallback) {
+            } else if (callback instanceof PlainAuthenticateCallback) {
                 PlainAuthenticateCallback plainCallback = (PlainAuthenticateCallback) callback;
                 boolean authenticated = authenticate(username, plainCallback.password());
                 plainCallback.authenticated(authenticated);
-            } else
+            } else {
                 throw new UnsupportedCallbackException(callback);
+            }
         }
     }
 
     protected boolean authenticate(String username, char[] password) throws IOException {
-        if (username == null)
+        if (username == null) {
             return false;
-        else {
+        } else {
             String expectedPassword = JaasContext.configEntryOption(jaasConfigEntries,
                     JAAS_USER_PREFIX + username,
                     PlainLoginModule.class.getName());

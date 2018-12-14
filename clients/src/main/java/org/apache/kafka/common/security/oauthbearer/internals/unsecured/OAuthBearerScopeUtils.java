@@ -61,8 +61,9 @@ public class OAuthBearerScopeUtils {
         List<String> retval = new ArrayList<>();
         for (String individualScopeItem : Objects.requireNonNull(spaceDelimitedScope).split(" ")) {
             if (!individualScopeItem.isEmpty()) {
-                if (!isValidScopeItem(individualScopeItem))
+                if (!isValidScopeItem(individualScopeItem)) {
                     throw new OAuthBearerConfigException(String.format("Invalid scope value: %s", individualScopeItem));
+                }
                 retval.add(individualScopeItem);
             }
         }

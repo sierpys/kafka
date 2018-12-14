@@ -130,10 +130,11 @@ public class SaslClientAuthenticator implements Authenticator {
             // determine client principal from subject for Kerberos to use as authorization id for the SaslClient.
             // For other mechanisms, the authenticated principal (username for PLAIN and SCRAM) is used as
             // authorization id. Hence the principal is not specified for creating the SaslClient.
-            if (mechanism.equals(SaslConfigs.GSSAPI_MECHANISM))
+            if (mechanism.equals(SaslConfigs.GSSAPI_MECHANISM)) {
                 this.clientPrincipalName = firstPrincipal(subject);
-            else
+            } else {
                 this.clientPrincipalName = null;
+            }
 
             saslClient = createSaslClient();
         } catch (Exception e) {
@@ -144,6 +145,7 @@ public class SaslClientAuthenticator implements Authenticator {
     private SaslClient createSaslClient() {
         try {
             return Subject.doAs(subject, new PrivilegedExceptionAction<SaslClient>() {
+                @Override
                 public SaslClient run() throws SaslException {
                     String[] mechs = {mechanism};
                     LOG.debug("Creating SaslClient: client={};service={};serviceHostname={};mechs={}",
@@ -163,10 +165,12 @@ public class SaslClientAuthenticator implements Authenticator {
      * The messages are sent and received as size delimited bytes that consists of a 4 byte network-ordered size N
      * followed by N bytes representing the opaque payload.
      */
+    @Override
     public void authenticate() throws IOException {
         short saslHandshakeVersion = 0;
-        if (netOutBuffer != null && !flushNetOutBufferAndUpdateInterestOps())
+        if (netOutBuffer != null && !flushNetOutBufferAndUpdateInterestOps()) {
             return;
+        }
 
         switch (saslState) {
             case SEND_APIVERSIONS_REQUEST:
@@ -177,13 +181,14 @@ public class SaslClientAuthenticator implements Authenticator {
                 break;
             case RECEIVE_APIVERSIONS_RESPONSE:
                 ApiVersionsResponse apiVersionsResponse = (ApiVersionsResponse) receiveKafkaResponse();
-                if (apiVersionsResponse == null)
+                if (apiVersionsResponse == null) {
                     break;
-                else {
+                } else {
                     saslHandshakeVersion = apiVersionsResponse.apiVersion(ApiKeys.SASL_HANDSHAKE.id).maxVersion;
                     ApiVersion authenticateVersion = apiVersionsResponse.apiVersion(ApiKeys.SASL_AUTHENTICATE.id);
-                    if (authenticateVersion != null)
+                    if (authenticateVersion != null) {
                         saslAuthenticateVersion((short) Math.min(authenticateVersion.maxVersion, ApiKeys.SASL_AUTHENTICATE.latestVersion()));
+                    }
                     setSaslState(SaslState.SEND_HANDSHAKE_REQUEST);
                     // Fall through to send handshake request with the latest supported version
                 }
@@ -194,9 +199,9 @@ public class SaslClientAuthenticator implements Authenticator {
                 break;
             case RECEIVE_HANDSHAKE_RESPONSE:
                 SaslHandshakeResponse handshakeResponse = (SaslHandshakeResponse) receiveKafkaResponse();
-                if (handshakeResponse == null)
+                if (handshakeResponse == null) {
                     break;
-                else {
+                } else {
                     handleSaslHandshakeResponse(handshakeResponse);
                     setSaslState(SaslState.INITIAL);
                     // Fall through and start SASL authentication using the configured client mechanism
@@ -211,16 +216,18 @@ public class SaslClientAuthenticator implements Authenticator {
                 // For versions without SASL_AUTHENTICATE header, SASL exchange may be complete after a token is sent to server.
                 // For versions with SASL_AUTHENTICATE header, server always sends a response to each SASL_AUTHENTICATE request.
                 if (saslClient.isComplete()) {
-                    if (saslAuthenticateVersion == DISABLE_KAFKA_SASL_AUTHENTICATE_HEADER || noResponsesPending)
+                    if (saslAuthenticateVersion == DISABLE_KAFKA_SASL_AUTHENTICATE_HEADER || noResponsesPending) {
                         setSaslState(SaslState.COMPLETE);
-                    else
+                    } else {
                         setSaslState(SaslState.CLIENT_COMPLETE);
+                    }
                 }
                 break;
             case CLIENT_COMPLETE:
                 byte[] serverResponse = receiveToken();
-                if (serverResponse != null)
+                if (serverResponse != null) {
                     setSaslState(SaslState.COMPLETE);
+                }
                 break;
             case COMPLETE:
                 break;
@@ -247,14 +254,15 @@ public class SaslClientAuthenticator implements Authenticator {
     }
 
     private void setSaslState(SaslState saslState) {
-        if (netOutBuffer != null && !netOutBuffer.completed())
+        if (netOutBuffer != null && !netOutBuffer.completed()) {
             pendingSaslState = saslState;
-        else {
+        } else {
             this.pendingSaslState = null;
             this.saslState = saslState;
             LOG.debug("Set SASL client state to {}", saslState);
-            if (saslState == SaslState.COMPLETE)
+            if (saslState == SaslState.COMPLETE) {
                 transportLayer.removeInterestOps(SelectionKey.OP_WRITE);
+            }
         }
     }
 
@@ -293,15 +301,19 @@ public class SaslClientAuthenticator implements Authenticator {
         boolean flushedCompletely = flushNetOutBuffer();
         if (flushedCompletely) {
             transportLayer.removeInterestOps(SelectionKey.OP_WRITE);
-            if (pendingSaslState != null)
+            if (pendingSaslState != null) {
                 setSaslState(pendingSaslState);
-        } else
+            }
+        } else {
             transportLayer.addInterestOps(SelectionKey.OP_WRITE);
+        }
         return flushedCompletely;
     }
 
     private byte[] receiveResponseOrToken() throws IOException {
-        if (netInBuffer == null) netInBuffer = new NetworkReceive(node);
+        if (netInBuffer == null) {
+            netInBuffer = new NetworkReceive(node);
+        }
         netInBuffer.readFrom(transportLayer);
         byte[] serverPacket = null;
         if (netInBuffer.complete()) {
@@ -313,17 +325,21 @@ public class SaslClientAuthenticator implements Authenticator {
         return serverPacket;
     }
 
+    @Override
     public KafkaPrincipal principal() {
         return new KafkaPrincipal(KafkaPrincipal.USER_TYPE, clientPrincipalName);
     }
 
+    @Override
     public boolean complete() {
         return saslState == SaslState.COMPLETE;
     }
 
+    @Override
     public void close() throws IOException {
-        if (saslClient != null)
+        if (saslClient != null) {
             saslClient.dispose();
+        }
     }
 
     private byte[] receiveToken() throws IOException {
@@ -339,25 +355,29 @@ public class SaslClientAuthenticator implements Authenticator {
                     throw errMsg == null ? error.exception() : error.exception(errMsg);
                 }
                 return Utils.readBytes(response.saslAuthBytes());
-            } else
+            } else {
                 return null;
+            }
         }
     }
 
 
     private byte[] createSaslToken(final byte[] saslToken, boolean isInitial) throws SaslException {
-        if (saslToken == null)
+        if (saslToken == null) {
             throw new IllegalSaslStateException("Error authenticating with the Kafka Broker: received a `null` saslToken.");
+        }
 
         try {
-            if (isInitial && !saslClient.hasInitialResponse())
+            if (isInitial && !saslClient.hasInitialResponse()) {
                 return saslToken;
-            else
+            } else {
                 return Subject.doAs(subject, new PrivilegedExceptionAction<byte[]>() {
+                    @Override
                     public byte[] run() throws SaslException {
                         return saslClient.evaluateChallenge(saslToken);
                     }
                 });
+            }
         } catch (PrivilegedActionException e) {
             String error = "An error: (" + e + ") occurred when evaluating SASL token received from the Kafka Broker.";
             // Try to provide hints to use about what went wrong so they can fix their configuration.
@@ -387,9 +407,9 @@ public class SaslClientAuthenticator implements Authenticator {
     private AbstractResponse receiveKafkaResponse() throws IOException {
         try {
             byte[] responseBytes = receiveResponseOrToken();
-            if (responseBytes == null)
+            if (responseBytes == null) {
                 return null;
-            else {
+            } else {
                 AbstractResponse response = NetworkClient.parseResponse(ByteBuffer.wrap(responseBytes), currentRequestHeader);
                 currentRequestHeader = null;
                 return response;
@@ -403,8 +423,9 @@ public class SaslClientAuthenticator implements Authenticator {
 
     private void handleSaslHandshakeResponse(SaslHandshakeResponse response) {
         Errors error = response.error();
-        if (error != Errors.NONE)
+        if (error != Errors.NONE) {
             setSaslState(SaslState.FAILED);
+        }
         switch (error) {
             case NONE:
                 break;
@@ -430,10 +451,11 @@ public class SaslClientAuthenticator implements Authenticator {
         Set<Principal> principals = subject.getPrincipals();
         synchronized (principals) {
             Iterator<Principal> iterator = principals.iterator();
-            if (iterator.hasNext())
+            if (iterator.hasNext()) {
                 return iterator.next().getName();
-            else
+            } else {
                 throw new KafkaException("Principal could not be determined from Subject, this may be a transient failure due to Kerberos re-login");
+            }
         }
     }
 }

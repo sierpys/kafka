@@ -189,10 +189,12 @@ public class DescribeConfigsResponse extends AbstractResponse {
         }
 
         public static ConfigSource forId(byte id) {
-            if (id < 0)
+            if (id < 0) {
                 throw new IllegalArgumentException("id should be positive, id: " + id);
-            if (id >= VALUES.length)
+            }
+            if (id >= VALUES.length) {
                 return UNKNOWN_CONFIG;
+            }
             return VALUES[id];
         }
     }
@@ -248,12 +250,12 @@ public class DescribeConfigsResponse extends AbstractResponse {
                 String configValue = configEntriesStruct.getString(CONFIG_VALUE_KEY_NAME);
                 boolean isSensitive = configEntriesStruct.getBoolean(IS_SENSITIVE_KEY_NAME);
                 ConfigSource configSource;
-                if (configEntriesStruct.hasField(CONFIG_SOURCE_KEY_NAME))
+                if (configEntriesStruct.hasField(CONFIG_SOURCE_KEY_NAME)) {
                     configSource = ConfigSource.forId(configEntriesStruct.getByte(CONFIG_SOURCE_KEY_NAME));
-                else if (configEntriesStruct.hasField(IS_DEFAULT_KEY_NAME)) {
-                    if (configEntriesStruct.getBoolean(IS_DEFAULT_KEY_NAME))
+                } else if (configEntriesStruct.hasField(IS_DEFAULT_KEY_NAME)) {
+                    if (configEntriesStruct.getBoolean(IS_DEFAULT_KEY_NAME)) {
                         configSource = ConfigSource.DEFAULT_CONFIG;
-                    else {
+                    } else {
                         switch (resourceType) {
                             case BROKER:
                                 configSource = ConfigSource.STATIC_BROKER_CONFIG;
@@ -266,8 +268,9 @@ public class DescribeConfigsResponse extends AbstractResponse {
                                 break;
                         }
                     }
-                } else
+                } else {
                     throw new IllegalStateException("Config entry should contain either is_default or config_source");
+                }
                 boolean readOnly = configEntriesStruct.getBoolean(READ_ONLY_KEY_NAME);
                 Collection<ConfigSynonym> synonyms;
                 if (configEntriesStruct.hasField(CONFIG_SYNONYMS_KEY_NAME)) {
@@ -280,8 +283,9 @@ public class DescribeConfigsResponse extends AbstractResponse {
                         ConfigSource source = ConfigSource.forId(synonymStruct.getByte(CONFIG_SOURCE_KEY_NAME));
                         synonyms.add(new ConfigSynonym(synonymConfigName, synonymConfigValue, source));
                     }
-                } else
+                } else {
                     synonyms = Collections.emptyList();
+                }
                 configEntries.add(new ConfigEntry(configName, configValue, configSource, isSensitive, readOnly, synonyms));
             }
             Config config = new Config(error, configEntries);
@@ -305,8 +309,9 @@ public class DescribeConfigsResponse extends AbstractResponse {
     @Override
     public Map<Errors, Integer> errorCounts() {
         Map<Errors, Integer> errorCounts = new HashMap<>();
-        for (Config response : configs.values())
+        for (Config response : configs.values()) {
             updateErrorCounts(errorCounts, response.error.error());
+        }
         return errorCounts;
     }
 

@@ -35,7 +35,9 @@ public class TransformationChain<R extends ConnectRecord<R>> {
     }
 
     public R apply(R record) {
-        if (transformations.isEmpty()) return record;
+        if (transformations.isEmpty()) {
+            return record;
+        }
 
         for (final Transformation<R> transformation : transformations) {
             final R current = record;
@@ -43,7 +45,9 @@ public class TransformationChain<R extends ConnectRecord<R>> {
             // execute the operation
             record = retryWithToleranceOperator.execute(() -> transformation.apply(current), Stage.TRANSFORMATION, transformation.getClass());
 
-            if (record == null) break;
+            if (record == null) {
+                break;
+            }
         }
 
         return record;
@@ -57,8 +61,12 @@ public class TransformationChain<R extends ConnectRecord<R>> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         TransformationChain that = (TransformationChain) o;
         return Objects.equals(transformations, that.transformations);
     }

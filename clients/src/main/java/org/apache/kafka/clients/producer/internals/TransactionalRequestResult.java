@@ -54,14 +54,16 @@ public final class TransactionalRequestResult {
             }
         }
 
-        if (!isSuccessful())
+        if (!isSuccessful()) {
             throw error();
+        }
     }
 
     public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
         boolean success = latch.await(timeout, unit);
-        if (!isSuccessful())
+        if (!isSuccessful()) {
             throw error();
+        }
         return success;
     }
 

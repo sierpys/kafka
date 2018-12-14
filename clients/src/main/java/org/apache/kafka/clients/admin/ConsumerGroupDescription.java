@@ -54,8 +54,12 @@ public class ConsumerGroupDescription {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ConsumerGroupDescription that = (ConsumerGroupDescription) o;
         return isSimpleConsumerGroup == that.isSimpleConsumerGroup &&
             groupId.equals(that.groupId) &&

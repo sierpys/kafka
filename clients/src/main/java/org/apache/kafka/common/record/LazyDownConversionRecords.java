@@ -132,8 +132,9 @@ public class LazyDownConversionRecords implements BaseRecords {
             this.maximumReadSize = maximumReadSize;
             this.firstConvertedBatch = firstConvertedBatch;
             // If we already have the first down-converted batch, advance the underlying records iterator to next batch
-            if (firstConvertedBatch != null)
+            if (firstConvertedBatch != null) {
                 this.batchIterator.next();
+            }
         }
 
         /**
@@ -167,8 +168,9 @@ public class LazyDownConversionRecords implements BaseRecords {
                 // representation in the message format we want to convert to. For example, V0 and V1 message formats
                 // have no notion of transaction markers which were introduced in V2 so they get dropped during conversion.
                 // We return converted records only when we have at least one valid batch of messages after conversion.
-                if (convertedRecords.records().sizeInBytes() > 0)
+                if (convertedRecords.records().sizeInBytes() > 0) {
                     return convertedRecords;
+                }
             }
             return allDone();
         }

@@ -39,7 +39,9 @@ public class WorkerConfigTransformer {
     }
 
     public Map<String, String> transform(String connectorName, Map<String, String> configs) {
-        if (configs == null) return null;
+        if (configs == null) {
+            return null;
+        }
         ConfigTransformerResult result = configTransformer.transform(configs);
         scheduleReload(connectorName, result.ttls());
         return result.data();

@@ -389,7 +389,9 @@ public class KafkaStreams {
             result.putAll(thread.producerMetrics());
             result.putAll(thread.consumerMetrics());
         }
-        if (globalStreamThread != null) result.putAll(globalStreamThread.consumerMetrics());
+        if (globalStreamThread != null) {
+            result.putAll(globalStreamThread.consumerMetrics());
+        }
         result.putAll(metrics.metrics());
         return Collections.unmodifiableMap(result);
     }

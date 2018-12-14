@@ -132,8 +132,9 @@ abstract public class Shell {
         } catch (InterruptedException ie) {
             throw new IOException(ie.toString());
         } finally {
-            if (timeoutTimer != null)
+            if (timeoutTimer != null) {
                 timeoutTimer.cancel();
+            }
 
             // close the input stream
             try {
@@ -141,8 +142,9 @@ abstract public class Shell {
             } catch (IOException ioe) {
                 LOG.warn("Error while closing the input stream", ioe);
             }
-            if (!completed.get())
+            if (!completed.get()) {
                 errThread.interrupt();
+            }
 
             try {
                 errReader.close();
@@ -204,10 +206,12 @@ abstract public class Shell {
             this.run();
         }
 
+        @Override
         protected String[] execString() {
             return command;
         }
 
+        @Override
         protected void parseExecResult(BufferedReader reader) throws IOException {
             output = new StringBuffer();
             char[] buf = new char[512];
@@ -229,6 +233,7 @@ abstract public class Shell {
          *
          * @return a string representation of the object.
          */
+        @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
             String[] args = execString();

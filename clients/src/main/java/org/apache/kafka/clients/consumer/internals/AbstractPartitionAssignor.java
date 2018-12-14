@@ -53,24 +53,27 @@ public abstract class AbstractPartitionAssignor implements PartitionAssignor {
     @Override
     public Map<String, Assignment> assign(Cluster metadata, Map<String, Subscription> subscriptions) {
         Set<String> allSubscribedTopics = new HashSet<>();
-        for (Map.Entry<String, Subscription> subscriptionEntry : subscriptions.entrySet())
+        for (Map.Entry<String, Subscription> subscriptionEntry : subscriptions.entrySet()) {
             allSubscribedTopics.addAll(subscriptionEntry.getValue().topics());
+        }
 
         Map<String, Integer> partitionsPerTopic = new HashMap<>();
         for (String topic : allSubscribedTopics) {
             Integer numPartitions = metadata.partitionCountForTopic(topic);
-            if (numPartitions != null && numPartitions > 0)
+            if (numPartitions != null && numPartitions > 0) {
                 partitionsPerTopic.put(topic, numPartitions);
-            else
+            } else {
                 log.debug("Skipping assignment for topic {} since no metadata is available", topic);
+            }
         }
 
         Map<String, List<TopicPartition>> rawAssignments = assign(partitionsPerTopic, subscriptions);
 
         // this class maintains no user data, so just wrap the results
         Map<String, Assignment> assignments = new HashMap<>();
-        for (Map.Entry<String, List<TopicPartition>> assignmentEntry : rawAssignments.entrySet())
+        for (Map.Entry<String, List<TopicPartition>> assignmentEntry : rawAssignments.entrySet()) {
             assignments.put(assignmentEntry.getKey(), new Assignment(assignmentEntry.getValue()));
+        }
         return assignments;
     }
 
@@ -90,8 +93,9 @@ public abstract class AbstractPartitionAssignor implements PartitionAssignor {
 
     protected static List<TopicPartition> partitions(String topic, int numPartitions) {
         List<TopicPartition> partitions = new ArrayList<>(numPartitions);
-        for (int i = 0; i < numPartitions; i++)
+        for (int i = 0; i < numPartitions; i++) {
             partitions.add(new TopicPartition(topic, i));
+        }
         return partitions;
     }
 }

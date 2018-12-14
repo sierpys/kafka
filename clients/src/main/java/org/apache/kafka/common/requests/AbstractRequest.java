@@ -127,10 +127,11 @@ public abstract class AbstractRequest extends AbstractRequestResponse {
      */
     public Map<Errors, Integer> errorCounts(Throwable e) {
         AbstractResponse response = getErrorResponse(0, e);
-        if (response == null)
+        if (response == null) {
             throw new IllegalStateException("Error counts could not be obtained for request " + this);
-        else
+        } else {
             return response.errorCounts();
+        }
     }
 
     /**

@@ -112,8 +112,9 @@ public class OAuthBearerTokenCallback implements Callback {
      *            the optional error URI to set
      */
     public void error(String errorCode, String errorDescription, String errorUri) {
-        if (Objects.requireNonNull(errorCode).isEmpty())
+        if (Objects.requireNonNull(errorCode).isEmpty()) {
             throw new IllegalArgumentException("error code must not be empty");
+        }
         this.errorCode = errorCode;
         this.errorDescription = errorDescription;
         this.errorUri = errorUri;

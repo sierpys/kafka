@@ -81,9 +81,10 @@ public final class Sensor {
         }
 
         public static RecordingLevel forId(int id) {
-            if (id < MIN_RECORDING_LEVEL_KEY || id > MAX_RECORDING_LEVEL_KEY)
+            if (id < MIN_RECORDING_LEVEL_KEY || id > MAX_RECORDING_LEVEL_KEY) {
                 throw new IllegalArgumentException(String.format("Unexpected RecordLevel id `%d`, it should be between `%d` " +
                     "and `%d` (inclusive)", id, MIN_RECORDING_LEVEL_KEY, MAX_RECORDING_LEVEL_KEY));
+            }
             return ID_TO_TYPE[id];
         }
 
@@ -118,10 +119,12 @@ public final class Sensor {
 
     /* Validate that this sensor doesn't end up referencing itself */
     private void checkForest(Set<Sensor> sensors) {
-        if (!sensors.add(this))
+        if (!sensors.add(this)) {
             throw new IllegalArgumentException("Circular dependency in sensors: " + name() + " is its own parent.");
-        for (Sensor parent : parents)
+        }
+        for (Sensor parent : parents) {
             parent.checkForest(sensors);
+        }
     }
 
     /**
@@ -175,13 +178,16 @@ public final class Sensor {
             this.lastRecordTime = timeMs;
             synchronized (this) {
                 // increment all the stats
-                for (Stat stat : this.stats)
+                for (Stat stat : this.stats) {
                     stat.record(config, value, timeMs);
-                if (checkQuotas)
+                }
+                if (checkQuotas) {
                     checkQuotas(timeMs);
+                }
             }
-            for (Sensor parent : parents)
+            for (Sensor parent : parents) {
                 parent.record(value, timeMs, checkQuotas);
+            }
         }
     }
 
@@ -225,8 +231,9 @@ public final class Sensor {
      * @return true if stat is added to sensor, false if sensor is expired
      */
     public synchronized boolean add(CompoundStat stat, MetricConfig config) {
-        if (hasExpired())
+        if (hasExpired()) {
             return false;
+        }
 
         this.stats.add(Utils.notNull(stat));
         Object lock = metricLock(stat);

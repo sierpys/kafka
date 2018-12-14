@@ -37,8 +37,9 @@ public class OAuthBearerIllegalTokenException extends KafkaException {
      */
     public OAuthBearerIllegalTokenException(OAuthBearerValidationResult reason) {
         super(Objects.requireNonNull(reason).failureDescription());
-        if (reason.success())
+        if (reason.success()) {
             throw new IllegalArgumentException("The reason indicates success; it must instead indicate failure");
+        }
         this.reason = reason;
     }
 

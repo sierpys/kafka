@@ -30,8 +30,10 @@ import org.apache.kafka.common.KafkaException;
 @Deprecated
 public class DefaultPrincipalBuilder implements PrincipalBuilder {
 
+    @Override
     public void configure(Map<String, ?> configs) {}
 
+    @Override
     public Principal buildPrincipal(TransportLayer transportLayer, Authenticator authenticator) throws KafkaException {
         try {
             return transportLayer.peerPrincipal();
@@ -40,6 +42,7 @@ public class DefaultPrincipalBuilder implements PrincipalBuilder {
         }
     }
 
+    @Override
     public void close() throws KafkaException {}
 
 }

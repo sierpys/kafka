@@ -160,8 +160,9 @@ public class ConsumerNetworkClient implements Closeable {
         do {
             poll(timeout);
             AuthenticationException ex = this.metadata.getAndClearAuthenticationException();
-            if (ex != null)
+            if (ex != null) {
                 throw ex;
+            }
         } while (this.metadata.version() == version && time.milliseconds() - startMs < timeout);
         return this.metadata.version() > version;
     }
@@ -198,8 +199,9 @@ public class ConsumerNetworkClient implements Closeable {
      * @throws InterruptException if the calling thread is interrupted
      */
     public void poll(RequestFuture<?> future) {
-        while (!future.isDone())
+        while (!future.isDone()) {
             poll(Long.MAX_VALUE, time.milliseconds(), future);
+        }
     }
 
     /**
@@ -266,8 +268,9 @@ public class ConsumerNetworkClient implements Closeable {
             // handler), the client will be woken up.
             if (pendingCompletion.isEmpty() && (pollCondition == null || pollCondition.shouldBlock())) {
                 // if there are no requests in flight, do not block longer than the retry backoff
-                if (client.inFlightRequestCount() == 0)
+                if (client.inFlightRequestCount() == 0) {
                     timeout = Math.min(timeout, retryBackoffMs);
+                }
                 client.poll(Math.min(maxPollTimeoutMs, timeout), now);
                 now = time.milliseconds();
             } else {
@@ -350,8 +353,9 @@ public class ConsumerNetworkClient implements Closeable {
      * @return A boolean indicating whether there is pending request
      */
     public boolean hasPendingRequests(Node node) {
-        if (unsent.hasRequests(node))
+        if (unsent.hasRequests(node)) {
             return true;
+        }
         lock.lock();
         try {
             return client.hasInFlightRequests(node.idString());
@@ -380,8 +384,9 @@ public class ConsumerNetworkClient implements Closeable {
      * @return A boolean indicating whether there is pending request
      */
     public boolean hasPendingRequests() {
-        if (unsent.hasRequests())
+        if (unsent.hasRequests()) {
             return true;
+        }
         lock.lock();
         try {
             return client.hasInFlightRequests();
@@ -394,16 +399,18 @@ public class ConsumerNetworkClient implements Closeable {
         boolean completedRequestsFired = false;
         for (;;) {
             RequestFutureCompletionHandler completionHandler = pendingCompletion.poll();
-            if (completionHandler == null)
+            if (completionHandler == null) {
                 break;
+            }
 
             completionHandler.fireCompletion();
             completedRequestsFired = true;
         }
 
         // wakeup the client in case it is blocking in poll for this future's completion
-        if (completedRequestsFired)
+        if (completedRequestsFired) {
             client.wakeup();
+        }
     }
 
     private void checkDisconnects(long now) {
@@ -432,8 +439,9 @@ public class ConsumerNetworkClient implements Closeable {
         try {
             while (true) {
                 Node node = pendingDisconnects.poll();
-                if (node == null)
+                if (node == null) {
                     break;
+                }
 
                 failUnsentRequests(node, DisconnectException.INSTANCE);
                 client.disconnect(node.idString());
@@ -477,8 +485,9 @@ public class ConsumerNetworkClient implements Closeable {
         // send any requests that can be sent now
         for (Node node : unsent.nodes()) {
             Iterator<ClientRequest> iterator = unsent.requestIterator(node);
-            if (iterator.hasNext())
+            if (iterator.hasNext()) {
                 pollDelayMs = Math.min(pollDelayMs, client.pollDelayMs(node, now));
+            }
 
             while (iterator.hasNext()) {
                 ClientRequest request = iterator.next();
@@ -540,8 +549,9 @@ public class ConsumerNetworkClient implements Closeable {
         lock.lock();
         try {
             AuthenticationException exception = client.authenticationException(node);
-            if (exception != null)
+            if (exception != null) {
                 throw exception;
+            }
         } finally {
             lock.unlock();
         }
@@ -644,8 +654,9 @@ public class ConsumerNetworkClient implements Closeable {
 
         public int requestCount() {
             int total = 0;
-            for (ConcurrentLinkedQueue<ClientRequest> requests : unsent.values())
+            for (ConcurrentLinkedQueue<ClientRequest> requests : unsent.values()) {
                 total += requests.size();
+            }
             return total;
         }
 
@@ -655,9 +666,11 @@ public class ConsumerNetworkClient implements Closeable {
         }
 
         public boolean hasRequests() {
-            for (ConcurrentLinkedQueue<ClientRequest> requests : unsent.values())
-                if (!requests.isEmpty())
+            for (ConcurrentLinkedQueue<ClientRequest> requests : unsent.values()) {
+                if (!requests.isEmpty()) {
                     return true;
+                }
+            }
             return false;
         }
 
@@ -671,8 +684,9 @@ public class ConsumerNetworkClient implements Closeable {
                     if (elapsedMs > request.requestTimeoutMs()) {
                         expiredRequests.add(request);
                         requestIterator.remove();
-                    } else
+                    } else {
                         break;
+                    }
                 }
             }
             return expiredRequests;
@@ -685,8 +699,9 @@ public class ConsumerNetworkClient implements Closeable {
                 Iterator<ConcurrentLinkedQueue<ClientRequest>> iterator = unsent.values().iterator();
                 while (iterator.hasNext()) {
                     ConcurrentLinkedQueue<ClientRequest> requests = iterator.next();
-                    if (requests.isEmpty())
+                    if (requests.isEmpty()) {
                         iterator.remove();
+                    }
                 }
             }
         }

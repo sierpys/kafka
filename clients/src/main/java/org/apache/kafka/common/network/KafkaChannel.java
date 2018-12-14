@@ -121,18 +121,21 @@ public class KafkaChannel {
      */
     public void prepare() throws AuthenticationException, IOException {
         try {
-            if (!transportLayer.ready())
+            if (!transportLayer.ready()) {
                 transportLayer.handshake();
-            if (transportLayer.ready() && !authenticator.complete())
+            }
+            if (transportLayer.ready() && !authenticator.complete()) {
                 authenticator.authenticate();
+            }
         } catch (AuthenticationException e) {
             // Clients are notified of authentication exceptions to enable operations to be terminated
             // without retries. Other errors are handled as network exceptions in Selector.
             state = new ChannelState(ChannelState.State.AUTHENTICATION_FAILED, e);
             throw e;
         }
-        if (ready())
+        if (ready()) {
             state = ChannelState.READY;
+        }
     }
 
     public void disconnect() {
@@ -150,8 +153,9 @@ public class KafkaChannel {
 
     public boolean finishConnect() throws IOException {
         boolean connected = transportLayer.finishConnect();
-        if (connected)
+        if (connected) {
             state = ready() ? ChannelState.READY : ChannelState.AUTHENTICATE;
+        }
         return connected;
     }
 
@@ -172,7 +176,9 @@ public class KafkaChannel {
      */
     void mute() {
         if (muteState == ChannelMuteState.NOT_MUTED) {
-            if (!disconnected) transportLayer.removeInterestOps(SelectionKey.OP_READ);
+            if (!disconnected) {
+                transportLayer.removeInterestOps(SelectionKey.OP_READ);
+            }
             muteState = ChannelMuteState.MUTED;
         }
     }
@@ -185,7 +191,9 @@ public class KafkaChannel {
      */
     boolean maybeUnmute() {
         if (muteState == ChannelMuteState.MUTED) {
-            if (!disconnected) transportLayer.addInterestOps(SelectionKey.OP_READ);
+            if (!disconnected) {
+                transportLayer.addInterestOps(SelectionKey.OP_READ);
+            }
             muteState = ChannelMuteState.NOT_MUTED;
         }
         return muteState == ChannelMuteState.NOT_MUTED;
@@ -248,8 +256,9 @@ public class KafkaChannel {
         //(receive == null) we dont mute. we also dont mute if whatever memory required has already been
         //successfully allocated (if none is required for the currently-being-read request
         //receive.memoryAllocated() is expected to return true)
-        if (receive == null || receive.memoryAllocated())
+        if (receive == null || receive.memoryAllocated()) {
             return false;
+        }
         //also cannot mute if underlying transport is not in the ready state
         return transportLayer.ready();
     }
@@ -274,14 +283,16 @@ public class KafkaChannel {
 
     public String socketDescription() {
         Socket socket = transportLayer.socketChannel().socket();
-        if (socket.getInetAddress() == null)
+        if (socket.getInetAddress() == null) {
             return socket.getLocalAddress().toString();
+        }
         return socket.getInetAddress().toString();
     }
 
     public void setSend(Send send) {
-        if (this.send != null)
+        if (this.send != null) {
             throw new IllegalStateException("Attempt to begin a send operation with prior send operation still in progress, connection id is " + id);
+        }
         this.send = send;
         this.transportLayer.addInterestOps(SelectionKey.OP_WRITE);
     }
@@ -337,8 +348,9 @@ public class KafkaChannel {
 
     private boolean send(Send send) throws IOException {
         send.writeTo(transportLayer);
-        if (send.completed())
+        if (send.completed()) {
             transportLayer.removeInterestOps(SelectionKey.OP_WRITE);
+        }
 
         return send.completed();
     }

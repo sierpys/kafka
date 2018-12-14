@@ -123,29 +123,33 @@ public class OAuthBearerUnsecuredLoginCallbackHandler implements AuthenticateCal
     @SuppressWarnings("unchecked")
     @Override
     public void configure(Map<String, ?> configs, String saslMechanism, List<AppConfigurationEntry> jaasConfigEntries) {
-        if (!OAuthBearerLoginModule.OAUTHBEARER_MECHANISM.equals(saslMechanism))
+        if (!OAuthBearerLoginModule.OAUTHBEARER_MECHANISM.equals(saslMechanism)) {
             throw new IllegalArgumentException(String.format("Unexpected SASL mechanism: %s", saslMechanism));
-        if (Objects.requireNonNull(jaasConfigEntries).size() != 1 || jaasConfigEntries.get(0) == null)
+        }
+        if (Objects.requireNonNull(jaasConfigEntries).size() != 1 || jaasConfigEntries.get(0) == null) {
             throw new IllegalArgumentException(
                     String.format("Must supply exactly 1 non-null JAAS mechanism configuration (size was %d)",
                             jaasConfigEntries.size()));
+        }
         this.moduleOptions = Collections.unmodifiableMap((Map<String, String>) jaasConfigEntries.get(0).getOptions());
         configured = true;
     }
 
     @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
-        if (!configured())
+        if (!configured()) {
             throw new IllegalStateException("Callback handler not configured");
+        }
         for (Callback callback : callbacks) {
-            if (callback instanceof OAuthBearerTokenCallback)
+            if (callback instanceof OAuthBearerTokenCallback) {
                 try {
                     handleCallback((OAuthBearerTokenCallback) callback);
                 } catch (KafkaException e) {
                     throw new IOException(e.getMessage(), e);
                 }
-            else
+            } else {
                 throw new UnsupportedCallbackException(callback);
+            }
         }
     }
 
@@ -155,8 +159,9 @@ public class OAuthBearerUnsecuredLoginCallbackHandler implements AuthenticateCal
     }
 
     private void handleCallback(OAuthBearerTokenCallback callback) throws IOException {
-        if (callback.token() != null)
+        if (callback.token() != null) {
             throw new IllegalArgumentException("Callback had a token already");
+        }
         String principalClaimNameValue = optionValue(PRINCIPAL_CLAIM_NAME_OPTION);
         String principalClaimName = principalClaimNameValue != null && !principalClaimNameValue.trim().isEmpty()
                 ? principalClaimNameValue.trim()
@@ -193,32 +198,35 @@ public class OAuthBearerUnsecuredLoginCallbackHandler implements AuthenticateCal
     private String commaPrependedStringNumberAndListClaimsJsonText() throws OAuthBearerConfigException {
         StringBuilder sb = new StringBuilder();
         for (String key : moduleOptions.keySet()) {
-            if (key.startsWith(STRING_CLAIM_PREFIX) && key.length() > STRING_CLAIM_PREFIX.length())
+            if (key.startsWith(STRING_CLAIM_PREFIX) && key.length() > STRING_CLAIM_PREFIX.length()) {
                 sb.append(',').append(claimOrHeaderJsonText(
                         confirmNotReservedClaimName(key.substring(STRING_CLAIM_PREFIX.length())), optionValue(key)));
-            else if (key.startsWith(NUMBER_CLAIM_PREFIX) && key.length() > NUMBER_CLAIM_PREFIX.length())
+            } else if (key.startsWith(NUMBER_CLAIM_PREFIX) && key.length() > NUMBER_CLAIM_PREFIX.length()) {
                 sb.append(',')
                         .append(claimOrHeaderJsonText(
                                 confirmNotReservedClaimName(key.substring(NUMBER_CLAIM_PREFIX.length())),
                                 Double.valueOf(optionValue(key))));
-            else if (key.startsWith(LIST_CLAIM_PREFIX) && key.length() > LIST_CLAIM_PREFIX.length())
+            } else if (key.startsWith(LIST_CLAIM_PREFIX) && key.length() > LIST_CLAIM_PREFIX.length()) {
                 sb.append(',')
                         .append(claimOrHeaderJsonArrayText(
                                 confirmNotReservedClaimName(key.substring(LIST_CLAIM_PREFIX.length())),
                                 listJsonText(optionValue(key))));
+            }
         }
         return sb.toString();
     }
 
     private String confirmNotReservedClaimName(String claimName) throws OAuthBearerConfigException {
-        if (RESERVED_CLAIMS.contains(claimName))
+        if (RESERVED_CLAIMS.contains(claimName)) {
             throw new OAuthBearerConfigException(String.format("Cannot explicitly set the '%s' claim", claimName));
+        }
         return claimName;
     }
 
     private String listJsonText(String value) {
-        if (value.isEmpty() || value.length() <= 1)
+        if (value.isEmpty() || value.length() <= 1) {
             return "[]";
+        }
         String delimiter;
         String unescapedDelimiterChar = value.substring(0, 1);
         switch (unescapedDelimiterChar) {
@@ -244,8 +252,9 @@ public class OAuthBearerUnsecuredLoginCallbackHandler implements AuthenticateCal
             sb.append('"').append(escape(element)).append('"');
         }
         if (listText.startsWith(unescapedDelimiterChar) || listText.endsWith(unescapedDelimiterChar)
-                || listText.contains(unescapedDelimiterChar + unescapedDelimiterChar))
+                || listText.contains(unescapedDelimiterChar + unescapedDelimiterChar)) {
             sb.append(",\"\"");
+        }
         return sb.append(']').toString();
     }
 
@@ -259,8 +268,9 @@ public class OAuthBearerUnsecuredLoginCallbackHandler implements AuthenticateCal
     }
 
     private String option(String key) {
-        if (!configured)
+        if (!configured) {
             throw new IllegalStateException("Callback handler not configured");
+        }
         return moduleOptions.get(Objects.requireNonNull(key));
     }
 
@@ -273,8 +283,9 @@ public class OAuthBearerUnsecuredLoginCallbackHandler implements AuthenticateCal
     }
 
     private String claimOrHeaderJsonArrayText(String claimName, String escapedClaimValue) {
-        if (!escapedClaimValue.startsWith("[") || !escapedClaimValue.endsWith("]"))
+        if (!escapedClaimValue.startsWith("[") || !escapedClaimValue.endsWith("]")) {
             throw new IllegalArgumentException(String.format("Illegal JSON array: %s", escapedClaimValue));
+        }
         return QUOTE + escape(claimName) + QUOTE + ":" + escapedClaimValue;
     }
 

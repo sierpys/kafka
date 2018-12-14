@@ -56,8 +56,9 @@ public class SaslClientCallbackHandler implements AuthenticateCallbackHandler {
                 NameCallback nc = (NameCallback) callback;
                 if (subject != null && !subject.getPublicCredentials(String.class).isEmpty()) {
                     nc.setName(subject.getPublicCredentials(String.class).iterator().next());
-                } else
+                } else {
                     nc.setName(nc.getDefaultName());
+                }
             } else if (callback instanceof PasswordCallback) {
                 if (subject != null && !subject.getPrivateCredentials(String.class).isEmpty()) {
                     char[] password = subject.getPrivateCredentials(String.class).iterator().next().toCharArray();
@@ -75,8 +76,9 @@ public class SaslClientCallbackHandler implements AuthenticateCallbackHandler {
                 String authId = ac.getAuthenticationID();
                 String authzId = ac.getAuthorizationID();
                 ac.setAuthorized(authId.equals(authzId));
-                if (ac.isAuthorized())
+                if (ac.isAuthorized()) {
                     ac.setAuthorizedID(authzId);
+                }
             } else if (callback instanceof ScramExtensionsCallback) {
                 ScramExtensionsCallback sc = (ScramExtensionsCallback) callback;
                 if (!SaslConfigs.GSSAPI_MECHANISM.equals(mechanism) && subject != null && !subject.getPublicCredentials(Map.class).isEmpty()) {

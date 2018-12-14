@@ -143,6 +143,7 @@ public abstract class AbstractTask implements Task {
      *
      * @return A string representation of the Task instance.
      */
+    @Override
     public String toString(final String indent) {
         final StringBuilder sb = new StringBuilder();
         sb.append(indent);
@@ -263,10 +264,12 @@ public abstract class AbstractTask implements Task {
         return taskClosed;
     }
 
+    @Override
     public boolean hasStateStores() {
         return !topology.stateStores().isEmpty();
     }
 
+    @Override
     public Collection<TopicPartition> changelogPartitions() {
         return stateMgr.changelogPartitions();
     }

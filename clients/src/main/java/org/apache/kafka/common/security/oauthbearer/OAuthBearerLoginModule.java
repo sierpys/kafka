@@ -241,21 +241,24 @@ public class OAuthBearerLoginModule implements LoginModule {
     public void initialize(Subject subject, CallbackHandler callbackHandler, Map<String, ?> sharedState,
             Map<String, ?> options) {
         this.subject = Objects.requireNonNull(subject);
-        if (!(Objects.requireNonNull(callbackHandler) instanceof AuthenticateCallbackHandler))
+        if (!(Objects.requireNonNull(callbackHandler) instanceof AuthenticateCallbackHandler)) {
             throw new IllegalArgumentException(String.format("Callback handler must be castable to %s: %s",
                     AuthenticateCallbackHandler.class.getName(), callbackHandler.getClass().getName()));
+        }
         this.callbackHandler = (AuthenticateCallbackHandler) callbackHandler;
     }
 
     @Override
     public boolean login() throws LoginException {
-        if (tokenRequiringCommit != null)
+        if (tokenRequiringCommit != null) {
             throw new IllegalStateException(String.format(
                     "Already have an uncommitted token with private credential token count=%d", committedTokenCount()));
-        if (myCommittedToken != null)
+        }
+        if (myCommittedToken != null) {
             throw new IllegalStateException(String.format(
                     "Already have a committed token with private credential token count=%d; must login on another login context or logout here first before reusing the same login context",
                     committedTokenCount()));
+        }
         OAuthBearerTokenCallback callback = new OAuthBearerTokenCallback();
         try {
             callbackHandler.handle(new Callback[] {callback});
@@ -276,12 +279,14 @@ public class OAuthBearerLoginModule implements LoginModule {
 
     @Override
     public boolean logout() {
-        if (tokenRequiringCommit != null)
+        if (tokenRequiringCommit != null) {
             throw new IllegalStateException(
                     "Cannot call logout() immediately after login(); need to first invoke commit() or abort()");
+        }
         if (myCommittedToken == null) {
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug("Nothing here to log out");
+            }
             return false;
         }
         log.info("Logging out my token; current committed token count = {}", committedTokenCount());
@@ -300,8 +305,9 @@ public class OAuthBearerLoginModule implements LoginModule {
     @Override
     public boolean commit() throws LoginException {
         if (tokenRequiringCommit == null) {
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug("Nothing here to commit");
+            }
             return false;
         }
         log.info("Committing my token; current committed token count = {}", committedTokenCount());
@@ -319,8 +325,9 @@ public class OAuthBearerLoginModule implements LoginModule {
             tokenRequiringCommit = null;
             return true;
         }
-        if (log.isDebugEnabled())
+        if (log.isDebugEnabled()) {
             log.debug("Nothing here to abort");
+        }
         return false;
     }
 

@@ -167,9 +167,10 @@ public class CreateTopicsRequest extends AbstractRequest {
 
         @Override
         public CreateTopicsRequest build(short version) {
-            if (validateOnly && version == 0)
+            if (validateOnly && version == 0) {
                 throw new UnsupportedVersionException("validateOnly is not supported in version 0 of " +
                         "CreateTopicsRequest");
+            }
             return new CreateTopicsRequest(topics, timeout, validateOnly, version);
         }
 
@@ -215,8 +216,9 @@ public class CreateTopicsRequest extends AbstractRequest {
             Struct singleRequestStruct = (Struct) requestStructObj;
             String topic = singleRequestStruct.get(TOPIC_NAME);
 
-            if (topics.containsKey(topic))
+            if (topics.containsKey(topic)) {
                 duplicateTopics.add(topic);
+            }
 
             int numPartitions = singleRequestStruct.getInt(NUM_PARTITIONS_KEY_NAME);
             short replicationFactor = singleRequestStruct.getShort(REPLICATION_FACTOR_KEY_NAME);
@@ -256,10 +258,11 @@ public class CreateTopicsRequest extends AbstractRequest {
 
         this.topics = topics;
         this.timeout = struct.getInt(TIMEOUT_KEY_NAME);
-        if (struct.hasField(VALIDATE_ONLY_KEY_NAME))
+        if (struct.hasField(VALIDATE_ONLY_KEY_NAME)) {
             this.validateOnly = struct.getBoolean(VALIDATE_ONLY_KEY_NAME);
-        else
+        } else {
             this.validateOnly = false;
+        }
         this.duplicateTopics = duplicateTopics;
     }
 
@@ -346,8 +349,9 @@ public class CreateTopicsRequest extends AbstractRequest {
         }
         struct.set(REQUESTS_KEY_NAME, createTopicRequestStructs.toArray());
         struct.set(TIMEOUT_KEY_NAME, timeout);
-        if (version >= 1)
+        if (version >= 1) {
             struct.set(VALIDATE_ONLY_KEY_NAME, validateOnly);
+        }
         return struct;
 
     }

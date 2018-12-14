@@ -55,8 +55,9 @@ public class OAuthBearerValidatorCallback implements Callback {
      *            the mandatory/non-blank token value
      */
     public OAuthBearerValidatorCallback(String tokenValue) {
-        if (Objects.requireNonNull(tokenValue).isEmpty())
+        if (Objects.requireNonNull(tokenValue).isEmpty()) {
             throw new IllegalArgumentException("token value must not be empty");
+        }
         this.tokenValue = tokenValue;
     }
 
@@ -144,8 +145,9 @@ public class OAuthBearerValidatorCallback implements Callback {
      *            the optional error openid-configuration value to set
      */
     public void error(String errorStatus, String errorScope, String errorOpenIDConfiguration) {
-        if (Objects.requireNonNull(errorStatus).isEmpty())
+        if (Objects.requireNonNull(errorStatus).isEmpty()) {
             throw new IllegalArgumentException("error status must not be empty");
+        }
         this.errorStatus = errorStatus;
         this.errorScope = errorScope;
         this.errorOpenIDConfiguration = errorOpenIDConfiguration;

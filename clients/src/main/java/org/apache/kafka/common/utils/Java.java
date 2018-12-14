@@ -29,10 +29,11 @@ public final class Java {
         final StringTokenizer st = new StringTokenizer(versionString, ".");
         int majorVersion = Integer.parseInt(st.nextToken());
         int minorVersion;
-        if (st.hasMoreTokens())
+        if (st.hasMoreTokens()) {
             minorVersion = Integer.parseInt(st.nextToken());
-        else
+        } else {
             minorVersion = 0;
+        }
         return new Version(majorVersion, minorVersion);
     }
 

@@ -37,6 +37,7 @@ import java.util.Set;
  */
 public class FileConfigProvider implements ConfigProvider {
 
+    @Override
     public void configure(Map<String, ?> configs) {
     }
 
@@ -46,6 +47,7 @@ public class FileConfigProvider implements ConfigProvider {
      * @param path the file where the data resides
      * @return the configuration data
      */
+    @Override
     public ConfigData get(String path) {
         Map<String, String> data = new HashMap<>();
         if (path == null || path.isEmpty()) {
@@ -75,6 +77,7 @@ public class FileConfigProvider implements ConfigProvider {
      * @param keys the keys whose values will be retrieved
      * @return the configuration data
      */
+    @Override
     public ConfigData get(String path, Set<String> keys) {
         Map<String, String> data = new HashMap<>();
         if (path == null || path.isEmpty()) {
@@ -100,6 +103,7 @@ public class FileConfigProvider implements ConfigProvider {
         return new BufferedReader(new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8));
     }
 
+    @Override
     public void close() {
     }
 }

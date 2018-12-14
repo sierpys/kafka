@@ -67,8 +67,9 @@ public class OAuthBearerValidationResult implements Serializable {
 
     private OAuthBearerValidationResult(boolean success, String failureDescription, String failureScope,
             String failureOpenIdConfig) {
-        if (success && (failureScope != null || failureOpenIdConfig != null))
+        if (success && (failureScope != null || failureOpenIdConfig != null)) {
             throw new IllegalArgumentException("success was indicated but failure scope/OpenIdConfig were provided");
+        }
         this.success = success;
         this.failureDescription = failureDescription;
         this.failureScope = failureScope;
@@ -120,7 +121,8 @@ public class OAuthBearerValidationResult implements Serializable {
      *             if this instance indicates failure
      */
     public void throwExceptionIfFailed() throws OAuthBearerIllegalTokenException {
-        if (!success())
+        if (!success()) {
             throw new OAuthBearerIllegalTokenException(this);
+        }
     }
 }

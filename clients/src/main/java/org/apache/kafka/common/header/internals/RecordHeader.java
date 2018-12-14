@@ -40,10 +40,12 @@ public class RecordHeader implements Header {
         this.valueBuffer = valueBuffer;
     }
     
+    @Override
     public String key() {
         return key;
     }
 
+    @Override
     public byte[] value() {
         if (value == null && valueBuffer != null) {
             value = Utils.toArray(valueBuffer);
@@ -54,10 +56,12 @@ public class RecordHeader implements Header {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
+        }
 
         RecordHeader header = (RecordHeader) o;
         return (key == null ? header.key == null : key.equals(header.key)) && 

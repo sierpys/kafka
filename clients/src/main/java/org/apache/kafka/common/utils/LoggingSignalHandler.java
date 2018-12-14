@@ -82,8 +82,9 @@ public class LoggingSignalHandler {
                 Object signal = args[0];
                 log.info("Terminating process due to signal {}", signal);
                 Object handler = jvmSignalHandlers.get(getName(signal));
-                if (handler != null)
+                if (handler != null) {
                     handle(handler, signal);
+                }
                 return null;
             }
         };
@@ -95,7 +96,8 @@ public class LoggingSignalHandler {
         Object signal = signalConstructor.newInstance(signalName);
         Object signalHandler = createSignalHandler(jvmSignalHandlers);
         Object oldHandler = signalHandleMethod.invoke(null, signal, signalHandler);
-        if (oldHandler != null)
+        if (oldHandler != null) {
             jvmSignalHandlers.put(signalName, oldHandler);
+        }
     }
 }

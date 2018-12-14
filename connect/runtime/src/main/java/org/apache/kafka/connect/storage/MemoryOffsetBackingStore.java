@@ -85,8 +85,9 @@ public class MemoryOffsetBackingStore implements OffsetBackingStore {
                 for (ByteBuffer key : keys) {
                     result.put(key, data.get(key));
                 }
-                if (callback != null)
+                if (callback != null) {
                     callback.onCompletion(null, result);
+                }
                 return result;
             }
         });
@@ -103,8 +104,9 @@ public class MemoryOffsetBackingStore implements OffsetBackingStore {
                     data.put(entry.getKey(), entry.getValue());
                 }
                 save();
-                if (callback != null)
+                if (callback != null) {
                     callback.onCompletion(null, null);
+                }
                 return null;
             }
         });

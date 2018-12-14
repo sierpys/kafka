@@ -48,6 +48,7 @@ class SegmentIterator implements KeyValueIterator<Bytes, byte[]> {
         this.to = to;
     }
 
+    @Override
     public void close() {
         if (currentIterator != null) {
             currentIterator.close();
@@ -93,6 +94,7 @@ class SegmentIterator implements KeyValueIterator<Bytes, byte[]> {
         return hasNext;
     }
 
+    @Override
     public KeyValue<Bytes, byte[]> next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
@@ -100,6 +102,7 @@ class SegmentIterator implements KeyValueIterator<Bytes, byte[]> {
         return currentIterator.next();
     }
 
+    @Override
     public void remove() {
         throw new UnsupportedOperationException("remove() is not supported in " + getClass().getName());
     }

@@ -55,6 +55,7 @@ public class SslChannelBuilder implements ChannelBuilder, ListenerReconfigurable
         this.isInterBrokerListener = isInterBrokerListener;
     }
 
+    @Override
     public void configure(Map<String, ?> configs) throws KafkaException {
         try {
             this.configs = configs;
@@ -173,8 +174,9 @@ public class SslChannelBuilder implements ChannelBuilder, ListenerReconfigurable
         public KafkaPrincipal principal() {
             InetAddress clientAddress = transportLayer.socketChannel().socket().getInetAddress();
             // listenerName should only be null in Client mode where principal() should not be called
-            if (listenerName == null)
+            if (listenerName == null) {
                 throw new IllegalStateException("Unexpected call to principal() when listenerName is null");
+            }
             SslAuthenticationContext context = new SslAuthenticationContext(
                     transportLayer.sslSession(),
                     clientAddress,
@@ -184,8 +186,9 @@ public class SslChannelBuilder implements ChannelBuilder, ListenerReconfigurable
 
         @Override
         public void close() throws IOException {
-            if (principalBuilder instanceof Closeable)
+            if (principalBuilder instanceof Closeable) {
                 Utils.closeQuietly((Closeable) principalBuilder, "principal builder");
+            }
         }
 
         /**

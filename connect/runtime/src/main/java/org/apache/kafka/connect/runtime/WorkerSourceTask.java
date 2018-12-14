@@ -173,10 +173,11 @@ class WorkerSourceTask extends WorkerTask {
         super.stop();
         stopRequestedLatch.countDown();
         synchronized (this) {
-            if (finishedStart)
+            if (finishedStart) {
                 tryStop();
-            else
+            } else {
                 startedShutdownBeforeStartCompleted = true;
+            }
         }
     }
 
@@ -222,11 +223,13 @@ class WorkerSourceTask extends WorkerTask {
                         recordPollReturned(toSend.size(), time.milliseconds() - start);
                     }
                 }
-                if (toSend == null)
+                if (toSend == null) {
                     continue;
+                }
                 log.debug("{} About to send " + toSend.size() + " records to Kafka", this);
-                if (!sendRecords())
+                if (!sendRecords()) {
                     stopRequestedLatch.await(SEND_FAILED_BACKOFF_MS, TimeUnit.MILLISECONDS);
+                }
             }
         } catch (InterruptedException e) {
             // Ignore and allow to exit.
@@ -380,8 +383,9 @@ class WorkerSourceTask extends WorkerTask {
     private synchronized void recordSent(final ProducerRecord<byte[], byte[]> record) {
         ProducerRecord<byte[], byte[]> removed = outstandingMessages.remove(record);
         // While flushing, we may also see callbacks for items in the backlog
-        if (removed == null && flushing)
+        if (removed == null && flushing) {
             removed = outstandingMessagesBacklog.remove(record);
+        }
         // But if neither one had it, something is very wrong
         if (removed == null) {
             log.error("{} CRITICAL Saw callback for record that was not present in the outstanding message set: {}", this, record);

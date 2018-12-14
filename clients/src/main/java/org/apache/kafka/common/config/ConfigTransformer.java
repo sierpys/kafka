@@ -170,6 +170,7 @@ public class ConfigTransformer {
             this.variable = matcher.group(4);
         }
 
+        @Override
         public String toString() {
             return "(" + providerName + ":" + (path != null ? path + ":" : "") + variable + ")";
         }

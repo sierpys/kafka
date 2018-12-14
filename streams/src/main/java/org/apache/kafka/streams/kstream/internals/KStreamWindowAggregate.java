@@ -116,6 +116,7 @@ public class KStreamWindowAggregate<K, V, T, W extends Window> implements KStrea
 
         return new KTableValueGetterSupplier<Windowed<K>, T>() {
 
+            @Override
             public KTableValueGetter<Windowed<K>, T> get() {
                 return new KStreamWindowAggregateValueGetter();
             }

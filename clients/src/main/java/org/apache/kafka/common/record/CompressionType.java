@@ -162,16 +162,17 @@ public enum CompressionType {
     }
 
     public static CompressionType forName(String name) {
-        if (NONE.name.equals(name))
+        if (NONE.name.equals(name)) {
             return NONE;
-        else if (GZIP.name.equals(name))
+        } else if (GZIP.name.equals(name)) {
             return GZIP;
-        else if (SNAPPY.name.equals(name))
+        } else if (SNAPPY.name.equals(name)) {
             return SNAPPY;
-        else if (LZ4.name.equals(name))
+        } else if (LZ4.name.equals(name)) {
             return LZ4;
-        else
+        } else {
             throw new IllegalArgumentException("Unknown compression name: " + name);
+        }
     }
 
     // We should only have a runtime dependency on compression algorithms in case the native libraries don't support

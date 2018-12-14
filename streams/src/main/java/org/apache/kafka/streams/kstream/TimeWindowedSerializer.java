@@ -60,8 +60,9 @@ public class TimeWindowedSerializer<T> implements WindowedSerializer<T> {
 
     @Override
     public byte[] serialize(final String topic, final Windowed<T> data) {
-        if (data == null)
+        if (data == null) {
             return null;
+        }
 
         return WindowKeySchema.toBinary(data, inner, topic);
     }

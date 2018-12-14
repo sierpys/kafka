@@ -98,6 +98,7 @@ public class KStreamReduce<K, V> implements KStreamAggProcessorSupplier<K, K, V,
 
         return new KTableValueGetterSupplier<K, V>() {
 
+            @Override
             public KTableValueGetter<K, V> get() {
                 return new KStreamReduceValueGetter();
             }

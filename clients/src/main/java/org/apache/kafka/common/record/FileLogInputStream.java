@@ -60,8 +60,9 @@ public class FileLogInputStream implements LogInputStream<FileLogInputStream.Fil
     @Override
     public FileChannelRecordBatch nextBatch() throws IOException {
         FileChannel channel = fileRecords.channel();
-        if (position >= end - HEADER_SIZE_UP_TO_MAGIC)
+        if (position >= end - HEADER_SIZE_UP_TO_MAGIC) {
             return null;
+        }
 
         logHeaderBuffer.rewind();
         Utils.readFullyOrFail(channel, logHeaderBuffer, position, "log header");
@@ -71,20 +72,23 @@ public class FileLogInputStream implements LogInputStream<FileLogInputStream.Fil
         int size = logHeaderBuffer.getInt(SIZE_OFFSET);
 
         // V0 has the smallest overhead, stricter checking is done later
-        if (size < LegacyRecord.RECORD_OVERHEAD_V0)
+        if (size < LegacyRecord.RECORD_OVERHEAD_V0) {
             throw new CorruptRecordException(String.format("Found record size %d smaller than minimum record " +
                             "overhead (%d) in file %s.", size, LegacyRecord.RECORD_OVERHEAD_V0, fileRecords.file()));
+        }
 
-        if (position > end - LOG_OVERHEAD - size)
+        if (position > end - LOG_OVERHEAD - size) {
             return null;
+        }
 
         byte magic = logHeaderBuffer.get(MAGIC_OFFSET);
         final FileChannelRecordBatch batch;
 
-        if (magic < RecordBatch.MAGIC_VALUE_V2)
+        if (magic < RecordBatch.MAGIC_VALUE_V2) {
             batch = new LegacyFileChannelRecordBatch(offset, magic, channel, position, size);
-        else
+        } else {
             batch = new DefaultFileChannelRecordBatch(offset, magic, channel, position, size);
+        }
 
         position += batch.sizeInBytes();
         return batch;
@@ -197,11 +201,13 @@ public class FileLogInputStream implements LogInputStream<FileLogInputStream.Fil
         }
 
         protected RecordBatch loadBatchHeader() {
-            if (fullBatch != null)
+            if (fullBatch != null) {
                 return fullBatch;
+            }
 
-            if (batchHeader == null)
+            if (batchHeader == null) {
                 batchHeader = loadBatchWithSize(headerSize(), "record batch header");
+            }
 
             return batchHeader;
         }
@@ -219,10 +225,12 @@ public class FileLogInputStream implements LogInputStream<FileLogInputStream.Fil
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
+            if (this == o) {
                 return true;
-            if (o == null || getClass() != o.getClass())
+            }
+            if (o == null || getClass() != o.getClass()) {
                 return false;
+            }
 
             FileChannelRecordBatch that = (FileChannelRecordBatch) o;
 

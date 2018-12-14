@@ -320,8 +320,9 @@ public final class WorkerManager {
             haltFuture.thenApply(new KafkaFuture.BaseFunction<String, Void>() {
                 @Override
                 public Void apply(String errorString) {
-                    if (errorString == null)
+                    if (errorString == null) {
                         errorString = "";
+                    }
                     if (errorString.isEmpty()) {
                         log.info("{}: Worker {} is halting.", nodeName, worker);
                     } else {

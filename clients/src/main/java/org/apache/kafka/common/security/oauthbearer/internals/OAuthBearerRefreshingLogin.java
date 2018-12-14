@@ -98,11 +98,13 @@ public class OAuthBearerRefreshingLogin implements Login {
             public ExpiringCredential expiringCredential() {
                 Set<OAuthBearerToken> privateCredentialTokens = expiringCredentialRefreshingLogin.subject()
                         .getPrivateCredentials(OAuthBearerToken.class);
-                if (privateCredentialTokens.isEmpty())
+                if (privateCredentialTokens.isEmpty()) {
                     return null;
+                }
                 final OAuthBearerToken token = privateCredentialTokens.iterator().next();
-                if (log.isDebugEnabled())
+                if (log.isDebugEnabled()) {
                     log.debug("Found expiring credential with principal '{}'.", token.principalName());
+                }
                 return new ExpiringCredential() {
                     @Override
                     public String principalName() {
@@ -130,8 +132,9 @@ public class OAuthBearerRefreshingLogin implements Login {
 
     @Override
     public void close() {
-        if (expiringCredentialRefreshingLogin != null)
+        if (expiringCredentialRefreshingLogin != null) {
             expiringCredentialRefreshingLogin.close();
+        }
     }
 
     @Override
@@ -146,8 +149,9 @@ public class OAuthBearerRefreshingLogin implements Login {
 
     @Override
     public synchronized LoginContext login() throws LoginException {
-        if (expiringCredentialRefreshingLogin != null)
+        if (expiringCredentialRefreshingLogin != null) {
             return expiringCredentialRefreshingLogin.login();
+        }
         throw new LoginException("Login was not configured properly");
     }
 }

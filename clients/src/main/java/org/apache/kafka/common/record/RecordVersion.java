@@ -35,8 +35,9 @@ public enum RecordVersion {
     }
 
     public static RecordVersion lookup(byte value) {
-        if (value < 0 || value >= VALUES.length)
+        if (value < 0 || value >= VALUES.length) {
             throw new IllegalArgumentException("Unknown record version: " + value);
+        }
         return VALUES[value];
     }
 

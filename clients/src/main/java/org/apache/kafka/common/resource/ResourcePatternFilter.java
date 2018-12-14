@@ -132,16 +132,21 @@ public class ResourcePatternFilter {
      * @return a string describing any ANY or UNKNOWN field, or null if there is no such field.
      */
     public String findIndefiniteField() {
-        if (resourceType == ResourceType.ANY)
+        if (resourceType == ResourceType.ANY) {
             return "Resource type is ANY.";
-        if (resourceType == ResourceType.UNKNOWN)
+        }
+        if (resourceType == ResourceType.UNKNOWN) {
             return "Resource type is UNKNOWN.";
-        if (name == null)
+        }
+        if (name == null) {
             return "Resource name is NULL.";
-        if (patternType == PatternType.MATCH)
+        }
+        if (patternType == PatternType.MATCH) {
             return "Resource pattern type is ANY.";
-        if (patternType == PatternType.UNKNOWN)
+        }
+        if (patternType == PatternType.UNKNOWN) {
             return "Resource pattern type is UNKNOWN.";
+        }
         return null;
     }
 
@@ -152,10 +157,12 @@ public class ResourcePatternFilter {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
+        }
 
         final ResourcePatternFilter resource = (ResourcePatternFilter) o;
         return resourceType == resource.resourceType &&

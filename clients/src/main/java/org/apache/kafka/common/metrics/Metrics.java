@@ -134,14 +134,16 @@ public class Metrics implements Closeable {
         this.childrenSensors = new ConcurrentHashMap<>();
         this.reporters = Utils.notNull(reporters);
         this.time = time;
-        for (MetricsReporter reporter : reporters)
+        for (MetricsReporter reporter : reporters) {
             reporter.init(new ArrayList<KafkaMetric>());
+        }
 
         // Create the ThreadPoolExecutor only if expiration of Sensors is enabled.
         if (enableExpiration) {
             this.metricsScheduler = new ScheduledThreadPoolExecutor(1);
             // Creating a daemon thread to not block shutdown
             this.metricsScheduler.setThreadFactory(new ThreadFactory() {
+                @Override
                 public Thread newThread(Runnable runnable) {
                     return KafkaThread.daemon("SensorExpiryThread", runnable);
                 }
@@ -223,12 +225,14 @@ public class Metrics implements Closeable {
     }
 
     private static Map<String, String> getTags(String... keyValue) {
-        if ((keyValue.length % 2) != 0)
+        if ((keyValue.length % 2) != 0) {
             throw new IllegalArgumentException("keyValue needs to be specified in pairs");
+        }
         Map<String, String> tags = new HashMap<String, String>();
 
-        for (int i = 0; i < keyValue.length; i += 2)
+        for (int i = 0; i < keyValue.length; i += 2) {
             tags.put(keyValue[i], keyValue[i + 1]);
+        }
         return tags;
     }
 
@@ -442,16 +446,18 @@ public class Metrics implements Closeable {
             synchronized (sensor) {
                 synchronized (this) {
                     if (sensors.remove(name, sensor)) {
-                        for (KafkaMetric metric : sensor.metrics())
+                        for (KafkaMetric metric : sensor.metrics()) {
                             removeMetric(metric.metricName());
+                        }
                         log.debug("Removed sensor with name {}", name);
                         childSensors = childrenSensors.remove(sensor);
                     }
                 }
             }
             if (childSensors != null) {
-                for (Sensor childSensor : childSensors)
+                for (Sensor childSensor : childSensors) {
                     removeSensor(childSensor.name());
+                }
             }
         }
     }
@@ -555,8 +561,9 @@ public class Metrics implements Closeable {
 
     synchronized void registerMetric(KafkaMetric metric) {
         MetricName metricName = metric.metricName();
-        if (this.metrics.containsKey(metricName))
+        if (this.metrics.containsKey(metricName)) {
             throw new IllegalArgumentException("A metric named '" + metricName + "' already exists, can't register another one.");
+        }
         this.metrics.put(metricName, metric);
         for (MetricsReporter reporter : reporters) {
             try {
@@ -588,6 +595,7 @@ public class Metrics implements Closeable {
      * Package private for testing
      */
     class ExpireSensorTask implements Runnable {
+        @Override
         public void run() {
             for (Map.Entry<String, Sensor> sensorEntry : sensors.entrySet()) {
                 // removeSensor also locks the sensor object. This is fine because synchronized is reentrant

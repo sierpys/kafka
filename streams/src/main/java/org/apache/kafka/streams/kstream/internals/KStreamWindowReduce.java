@@ -112,6 +112,7 @@ public class KStreamWindowReduce<K, V, W extends Window> implements KStreamAggPr
 
         return new KTableValueGetterSupplier<Windowed<K>, V>() {
 
+            @Override
             public KTableValueGetter<Windowed<K>, V> get() {
                 return new KStreamWindowReduceValueGetter();
             }

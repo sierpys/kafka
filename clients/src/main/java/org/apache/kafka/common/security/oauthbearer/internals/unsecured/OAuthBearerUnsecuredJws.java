@@ -76,37 +76,44 @@ public class OAuthBearerUnsecuredJws implements OAuthBearerToken {
     public OAuthBearerUnsecuredJws(String compactSerialization, String principalClaimName, String scopeClaimName)
             throws OAuthBearerIllegalTokenException {
         this.compactSerialization = Objects.requireNonNull(compactSerialization);
-        if (compactSerialization.contains(".."))
+        if (compactSerialization.contains("..")) {
             throw new OAuthBearerIllegalTokenException(
                     OAuthBearerValidationResult.newFailure("Malformed compact serialization contains '..'"));
+        }
         this.splits = extractCompactSerializationSplits();
         this.header = toMap(splits().get(0));
         String claimsSplit = splits.get(1);
         this.claims = toMap(claimsSplit);
         String alg = Objects.requireNonNull(header().get("alg"), "JWS header must have an Algorithm value").toString();
-        if (!"none".equals(alg))
+        if (!"none".equals(alg)) {
             throw new OAuthBearerIllegalTokenException(
                     OAuthBearerValidationResult.newFailure("Unsecured JWS must have 'none' for an algorithm"));
+        }
         String digitalSignatureSplit = splits.get(2);
-        if (!digitalSignatureSplit.isEmpty())
+        if (!digitalSignatureSplit.isEmpty()) {
             throw new OAuthBearerIllegalTokenException(
                     OAuthBearerValidationResult.newFailure("Unsecured JWS must not contain a digital signature"));
+        }
         this.principalClaimName = Objects.requireNonNull(principalClaimName).trim();
-        if (this.principalClaimName.isEmpty())
+        if (this.principalClaimName.isEmpty()) {
             throw new IllegalArgumentException("Must specify a non-blank principal claim name");
+        }
         this.scopeClaimName = Objects.requireNonNull(scopeClaimName).trim();
-        if (this.scopeClaimName.isEmpty())
+        if (this.scopeClaimName.isEmpty()) {
             throw new IllegalArgumentException("Must specify a non-blank scope claim name");
+        }
         this.scope = calculateScope();
         Number expirationTimeSeconds = expirationTime();
-        if (expirationTimeSeconds == null)
+        if (expirationTimeSeconds == null) {
             throw new OAuthBearerIllegalTokenException(
                     OAuthBearerValidationResult.newFailure("No expiration time in JWT"));
+        }
         lifetime = convertClaimTimeInSecondsToMs(expirationTimeSeconds);
         String principalName = claim(this.principalClaimName, String.class);
-        if (principalName == null || principalName.trim().isEmpty())
+        if (principalName == null || principalName.trim().isEmpty()) {
             throw new OAuthBearerIllegalTokenException(OAuthBearerValidationResult
                     .newFailure("No principal name in JWT claim: " + this.principalClaimName));
+        }
         this.principalName = principalName;
         this.startTimeMs = calculateStartTimeMs();
     }
@@ -194,12 +201,15 @@ public class OAuthBearerUnsecuredJws implements OAuthBearerToken {
     public boolean isClaimType(String claimName, Class<?> type) {
         Object value = rawClaim(claimName);
         Objects.requireNonNull(type);
-        if (value == null)
+        if (value == null) {
             return false;
-        if (type == String.class && value instanceof String)
+        }
+        if (type == String.class && value instanceof String) {
             return true;
-        if (type == Number.class && value instanceof Number)
+        }
+        if (type == Number.class && value instanceof Number) {
             return true;
+        }
         return type == List.class && value instanceof List;
     }
 
@@ -297,8 +307,9 @@ public class OAuthBearerUnsecuredJws implements OAuthBearerToken {
         try {
             byte[] decode = Base64.getDecoder().decode(split);
             JsonNode jsonNode = new ObjectMapper().readTree(decode);
-            if (jsonNode == null)
+            if (jsonNode == null) {
                 throw new OAuthBearerIllegalTokenException(OAuthBearerValidationResult.newFailure("malformed JSON"));
+            }
             for (Iterator<Entry<String, JsonNode>> iterator = jsonNode.fields(); iterator.hasNext();) {
                 Entry<String, JsonNode> entry = iterator.next();
                 retval.put(entry.getKey(), convert(entry.getValue()));
@@ -315,11 +326,13 @@ public class OAuthBearerUnsecuredJws implements OAuthBearerToken {
 
     private List<String> extractCompactSerializationSplits() {
         List<String> tmpSplits = new ArrayList<>(Arrays.asList(compactSerialization.split("\\.")));
-        if (compactSerialization.endsWith("."))
+        if (compactSerialization.endsWith(".")) {
             tmpSplits.add("");
-        if (tmpSplits.size() != 3)
+        }
+        if (tmpSplits.size() != 3) {
             throw new OAuthBearerIllegalTokenException(OAuthBearerValidationResult.newFailure(
                     "Unsecured JWS compact serializations must have 3 dot-separated Base64URL-encoded values"));
+        }
         return Collections.unmodifiableList(tmpSplits);
     }
 
@@ -347,17 +360,18 @@ public class OAuthBearerUnsecuredJws implements OAuthBearerToken {
         String scopeClaimName = scopeClaimName();
         if (isClaimType(scopeClaimName, String.class)) {
             String scopeClaimValue = claim(scopeClaimName, String.class);
-            if (scopeClaimValue.trim().isEmpty())
+            if (scopeClaimValue.trim().isEmpty()) {
                 return Collections.emptySet();
-            else {
+            } else {
                 Set<String> retval = new HashSet<>();
                 retval.add(scopeClaimValue.trim());
                 return Collections.unmodifiableSet(retval);
             }
         }
         List<?> scopeClaimValue = claim(scopeClaimName, List.class);
-        if (scopeClaimValue == null || scopeClaimValue.isEmpty())
+        if (scopeClaimValue == null || scopeClaimValue.isEmpty()) {
             return Collections.emptySet();
+        }
         @SuppressWarnings("unchecked")
         List<String> stringList = (List<String>) scopeClaimValue;
         Set<String> retval = new HashSet<>();

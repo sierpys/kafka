@@ -51,8 +51,9 @@ public class MultiRecordsSend implements Send {
         this.sendQueue = sends;
 
         long size = 0;
-        for (Send send : sends)
+        for (Send send : sends) {
             size += send.size();
+        }
         this.size = size;
 
         this.current = sendQueue.poll();
@@ -76,16 +77,18 @@ public class MultiRecordsSend implements Send {
     // Visible for testing
     int numResidentSends() {
         int count = 0;
-        if (current != null)
+        if (current != null) {
             count += 1;
+        }
         count += sendQueue.size();
         return count;
     }
 
     @Override
     public long writeTo(GatheringByteChannel channel) throws IOException {
-        if (completed())
+        if (completed()) {
             throw new KafkaException("This operation cannot be invoked on a complete request.");
+        }
 
         int totalWrittenPerCall = 0;
         boolean sendComplete;
@@ -101,8 +104,9 @@ public class MultiRecordsSend implements Send {
 
         totalWritten += totalWrittenPerCall;
 
-        if (completed() && totalWritten != size)
+        if (completed() && totalWritten != size) {
             log.error("mismatch in sending bytes over socket; expected: " + size + " actual: " + totalWritten);
+        }
 
         log.trace("Bytes written as part of multi-send call: {}, total bytes written so far: {}, expected bytes to write: {}",
                 totalWrittenPerCall, totalWritten, size);
@@ -124,8 +128,9 @@ public class MultiRecordsSend implements Send {
         // of temporary memory used for down-conversion, etc. Pull out any such statistics from the underlying send
         // and fold it up appropriately.
         if (completedSend instanceof LazyDownConversionRecordsSend) {
-            if (recordConversionStats == null)
+            if (recordConversionStats == null) {
                 recordConversionStats = new HashMap<>();
+            }
             LazyDownConversionRecordsSend lazyRecordsSend = (LazyDownConversionRecordsSend) completedSend;
             recordConversionStats.put(lazyRecordsSend.topicPartition(), lazyRecordsSend.recordConversionStats());
         }

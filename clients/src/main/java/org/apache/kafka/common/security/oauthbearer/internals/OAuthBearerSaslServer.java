@@ -63,9 +63,10 @@ public class OAuthBearerSaslServer implements SaslServer {
     private String errorMessage = null;
 
     public OAuthBearerSaslServer(CallbackHandler callbackHandler) {
-        if (!(Objects.requireNonNull(callbackHandler) instanceof AuthenticateCallbackHandler))
+        if (!(Objects.requireNonNull(callbackHandler) instanceof AuthenticateCallbackHandler)) {
             throw new IllegalArgumentException(String.format("Callback handler must be castable to %s: %s",
                     AuthenticateCallbackHandler.class.getName(), callbackHandler.getClass().getName()));
+        }
         this.callbackHandler = (AuthenticateCallbackHandler) callbackHandler;
     }
 
@@ -85,16 +86,18 @@ public class OAuthBearerSaslServer implements SaslServer {
     @Override
     public byte[] evaluateResponse(byte[] response) throws SaslException, SaslAuthenticationException {
         if (response.length == 1 && response[0] == OAuthBearerSaslClient.BYTE_CONTROL_A && errorMessage != null) {
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug("Received %x01 response from client after it received our error");
+            }
             throw new SaslAuthenticationException(errorMessage);
         }
         errorMessage = null;
         String responseMsg = new String(response, StandardCharsets.UTF_8);
         Matcher matcher = CLIENT_INITIAL_RESPONSE_PATTERN.matcher(responseMsg);
         if (!matcher.matches()) {
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug(INVALID_OAUTHBEARER_CLIENT_FIRST_MESSAGE);
+            }
             throw new SaslException(INVALID_OAUTHBEARER_CLIENT_FIRST_MESSAGE);
         }
         String authzid = matcher.group("authzid");
@@ -102,8 +105,9 @@ public class OAuthBearerSaslServer implements SaslServer {
         if (!"bearer".equalsIgnoreCase(matcher.group("scheme"))) {
             String msg = String.format("Invalid scheme in OAUTHBEARER client first message: %s",
                     matcher.group("scheme"));
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug(msg);
+            }
             throw new SaslException(msg);
         }
         String tokenValue = matcher.group("token");
@@ -112,8 +116,9 @@ public class OAuthBearerSaslServer implements SaslServer {
 
     @Override
     public String getAuthorizationID() {
-        if (!complete)
+        if (!complete) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return tokenForNegotiatedProperty.principalName();
     }
 
@@ -124,8 +129,9 @@ public class OAuthBearerSaslServer implements SaslServer {
 
     @Override
     public Object getNegotiatedProperty(String propName) {
-        if (!complete)
+        if (!complete) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return NEGOTIATED_PROPERTY_KEY_TOKEN.equals(propName) ? tokenForNegotiatedProperty : null;
     }
 
@@ -136,15 +142,17 @@ public class OAuthBearerSaslServer implements SaslServer {
 
     @Override
     public byte[] unwrap(byte[] incoming, int offset, int len) throws SaslException {
-        if (!complete)
+        if (!complete) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return Arrays.copyOfRange(incoming, offset, offset + len);
     }
 
     @Override
     public byte[] wrap(byte[] outgoing, int offset, int len) throws SaslException {
-        if (!complete)
+        if (!complete) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return Arrays.copyOfRange(outgoing, offset, offset + len);
     }
 
@@ -160,40 +168,46 @@ public class OAuthBearerSaslServer implements SaslServer {
             callbackHandler.handle(new Callback[] {callback});
         } catch (IOException | UnsupportedCallbackException e) {
             String msg = String.format("%s: %s", INTERNAL_ERROR_ON_SERVER, e.getMessage());
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug(msg, e);
+            }
             throw new SaslException(msg);
         }
         OAuthBearerToken token = callback.token();
         if (token == null) {
             errorMessage = jsonErrorResponse(callback.errorStatus(), callback.errorScope(),
                     callback.errorOpenIDConfiguration());
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug(errorMessage);
+            }
             return errorMessage.getBytes(StandardCharsets.UTF_8);
         }
         /*
          * We support the client specifying an authorization ID as per the SASL
          * specification, but it must match the principal name if it is specified.
          */
-        if (!authorizationId.isEmpty() && !authorizationId.equals(token.principalName()))
+        if (!authorizationId.isEmpty() && !authorizationId.equals(token.principalName())) {
             throw new SaslAuthenticationException(String.format(
                     "Authentication failed: Client requested an authorization id (%s) that is different from the token's principal name (%s)",
                     authorizationId, token.principalName()));
+        }
         tokenForNegotiatedProperty = token;
         complete = true;
-        if (log.isDebugEnabled())
+        if (log.isDebugEnabled()) {
             log.debug("Successfully authenticate User={}", token.principalName());
+        }
         return new byte[0];
     }
 
     private static String jsonErrorResponse(String errorStatus, String errorScope, String errorOpenIDConfiguration) {
         String jsonErrorResponse = String.format("{\"status\":\"%s\"", errorStatus);
-        if (errorScope != null)
+        if (errorScope != null) {
             jsonErrorResponse = String.format("%s, \"scope\":\"%s\"", jsonErrorResponse, errorScope);
-        if (errorOpenIDConfiguration != null)
+        }
+        if (errorOpenIDConfiguration != null) {
             jsonErrorResponse = String.format("%s, \"openid-configuration\":\"%s\"", jsonErrorResponse,
                     errorOpenIDConfiguration);
+        }
         jsonErrorResponse = String.format("%s}", jsonErrorResponse);
         return jsonErrorResponse;
     }

@@ -84,8 +84,9 @@ public class OAuthBearerSaslClient implements SaslClient {
             OAuthBearerTokenCallback callback = new OAuthBearerTokenCallback();
             switch (state) {
                 case SEND_CLIENT_FIRST_MESSAGE:
-                    if (challenge != null && challenge.length != 0)
+                    if (challenge != null && challenge.length != 0) {
                         throw new SaslException("Expected empty challenge");
+                    }
                     callbackHandler().handle(new Callback[] {callback});
                     setState(State.RECEIVE_SERVER_FIRST_MESSAGE);
                     return String.format("n,,auth=Bearer %s", callback.token().value())
@@ -93,15 +94,17 @@ public class OAuthBearerSaslClient implements SaslClient {
                 case RECEIVE_SERVER_FIRST_MESSAGE:
                     if (challenge != null && challenge.length != 0) {
                         String jsonErrorResponse = new String(challenge, StandardCharsets.UTF_8);
-                        if (log.isDebugEnabled())
+                        if (log.isDebugEnabled()) {
                             log.debug("Sending %%x01 response to server after receiving an error: {}",
                                     jsonErrorResponse);
+                        }
                         setState(State.RECEIVE_SERVER_MESSAGE_AFTER_FAILURE);
                         return new byte[] {BYTE_CONTROL_A};
                     }
                     callbackHandler().handle(new Callback[] {callback});
-                    if (log.isDebugEnabled())
+                    if (log.isDebugEnabled()) {
                         log.debug("Successfully authenticated as {}", callback.token().principalName());
+                    }
                     setState(State.COMPLETE);
                     return null;
                 default:
@@ -123,22 +126,25 @@ public class OAuthBearerSaslClient implements SaslClient {
 
     @Override
     public byte[] unwrap(byte[] incoming, int offset, int len) throws SaslException {
-        if (!isComplete())
+        if (!isComplete()) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return Arrays.copyOfRange(incoming, offset, offset + len);
     }
 
     @Override
     public byte[] wrap(byte[] outgoing, int offset, int len) throws SaslException {
-        if (!isComplete())
+        if (!isComplete()) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return Arrays.copyOfRange(outgoing, offset, offset + len);
     }
 
     @Override
     public Object getNegotiatedProperty(String propName) {
-        if (!isComplete())
+        if (!isComplete()) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return null;
     }
 
@@ -159,10 +165,11 @@ public class OAuthBearerSaslClient implements SaslClient {
             for (String mechanism : mechanisms) {
                 for (int i = 0; i < mechanismNamesCompatibleWithPolicy.length; i++) {
                     if (mechanismNamesCompatibleWithPolicy[i].equals(mechanism)) {
-                        if (!(Objects.requireNonNull(callbackHandler) instanceof AuthenticateCallbackHandler))
+                        if (!(Objects.requireNonNull(callbackHandler) instanceof AuthenticateCallbackHandler)) {
                             throw new IllegalArgumentException(String.format(
                                     "Callback handler must be castable to %s: %s",
                                     AuthenticateCallbackHandler.class.getName(), callbackHandler.getClass().getName()));
+                        }
                         return new OAuthBearerSaslClient((AuthenticateCallbackHandler) callbackHandler);
                     }
                 }

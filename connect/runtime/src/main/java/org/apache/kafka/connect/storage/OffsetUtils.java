@@ -25,32 +25,39 @@ import java.util.Map;
 public class OffsetUtils {
     @SuppressWarnings("unchecked")
     public static void validateFormat(Object offsetData) {
-        if (offsetData == null)
+        if (offsetData == null) {
             return;
+        }
 
-        if (!(offsetData instanceof Map))
+        if (!(offsetData instanceof Map)) {
             throw new DataException("Offsets must be specified as a Map");
+        }
         validateFormat((Map<Object, Object>) offsetData);
     }
 
     public static <K, V> void validateFormat(Map<K, V> offsetData) {
         // Both keys and values for offsets may be null. For values, this is a useful way to delete offsets or indicate
         // that there's not usable concept of offsets in your source system.
-        if (offsetData == null)
+        if (offsetData == null) {
             return;
+        }
 
         for (Map.Entry<K, V> entry : offsetData.entrySet()) {
-            if (!(entry.getKey() instanceof String))
+            if (!(entry.getKey() instanceof String)) {
                 throw new DataException("Offsets may only use String keys");
+            }
 
             Object value = entry.getValue();
-            if (value == null)
+            if (value == null) {
                 continue;
+            }
             Schema.Type schemaType = ConnectSchema.schemaType(value.getClass());
-            if (schemaType == null)
+            if (schemaType == null) {
                 throw new DataException("Offsets may only contain primitive types as values, but field " + entry.getKey() + " contains " + value.getClass());
-            if (!schemaType.isPrimitive())
+            }
+            if (!schemaType.isPrimitive()) {
                 throw new DataException("Offsets may only contain primitive types as values, but field " + entry.getKey() + " contains " + schemaType);
+            }
         }
     }
 }

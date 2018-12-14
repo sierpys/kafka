@@ -79,8 +79,9 @@ public class ScramMessages {
         public ClientFirstMessage(byte[] messageBytes) throws SaslException {
             String message = toMessage(messageBytes);
             Matcher matcher = PATTERN.matcher(message);
-            if (!matcher.matches())
+            if (!matcher.matches()) {
                 throw new SaslException("Invalid SCRAM client first message format: " + message);
+            }
             String authzid = matcher.group("authzid");
             this.authorizationId = authzid != null ? authzid : "";
             this.saslName = matcher.group("saslname");
@@ -113,11 +114,13 @@ public class ScramMessages {
 
         public String clientFirstMessageBare() {
             String extensionStr = extensions.toString();
-            if (extensionStr.isEmpty())
+            if (extensionStr.isEmpty()) {
                 return String.format("n=%s,r=%s", saslName, nonce);
-            else
+            } else {
                 return String.format("n=%s,r=%s,%s", saslName, nonce, extensionStr);
+            }
         }
+        @Override
         String toMessage() {
             return gs2Header() + clientFirstMessageBare();
         }
@@ -144,12 +147,14 @@ public class ScramMessages {
         public ServerFirstMessage(byte[] messageBytes) throws SaslException {
             String message = toMessage(messageBytes);
             Matcher matcher = PATTERN.matcher(message);
-            if (!matcher.matches())
+            if (!matcher.matches()) {
                 throw new SaslException("Invalid SCRAM server first message format: " + message);
+            }
             try {
                 this.iterations = Integer.parseInt(matcher.group("iterations"));
-                if (this.iterations <= 0)
+                if (this.iterations <= 0) {
                     throw new SaslException("Invalid SCRAM server first message format: invalid iterations " + iterations);
+                }
             } catch (NumberFormatException e) {
                 throw new SaslException("Invalid SCRAM server first message format: invalid iterations");
             }
@@ -171,6 +176,7 @@ public class ScramMessages {
         public int iterations() {
             return iterations;
         }
+        @Override
         String toMessage() {
             return String.format("r=%s,s=%s,i=%d", nonce, Base64.getEncoder().encodeToString(salt), iterations);
         }
@@ -196,8 +202,9 @@ public class ScramMessages {
         public ClientFinalMessage(byte[] messageBytes) throws SaslException {
             String message = toMessage(messageBytes);
             Matcher matcher = PATTERN.matcher(message);
-            if (!matcher.matches())
+            if (!matcher.matches()) {
                 throw new SaslException("Invalid SCRAM client final message format: " + message);
+            }
 
             this.channelBinding = Base64.getDecoder().decode(matcher.group("channel"));
             this.nonce = matcher.group("nonce");
@@ -224,6 +231,7 @@ public class ScramMessages {
                     Base64.getEncoder().encodeToString(channelBinding),
                     nonce);
         }
+        @Override
         String toMessage() {
             return String.format("%s,p=%s",
                     clientFinalMessageWithoutProof(),
@@ -249,8 +257,9 @@ public class ScramMessages {
         public ServerFinalMessage(byte[] messageBytes) throws SaslException {
             String message = toMessage(messageBytes);
             Matcher matcher = PATTERN.matcher(message);
-            if (!matcher.matches())
+            if (!matcher.matches()) {
                 throw new SaslException("Invalid SCRAM server final message format: " + message);
+            }
             String error = null;
             try {
                 error = matcher.group("error");
@@ -275,11 +284,13 @@ public class ScramMessages {
         public byte[] serverSignature() {
             return serverSignature;
         }
+        @Override
         String toMessage() {
-            if (error != null)
+            if (error != null) {
                 return "e=" + error;
-            else
+            } else {
                 return "v=" + Base64.getEncoder().encodeToString(serverSignature);
+            }
         }
     }
 }

@@ -55,6 +55,7 @@ class KTableTransformValues<K, V, V1> implements KTableProcessorSupplier<K, V, V
         return new KTableValueGetterSupplier<K, V1>() {
             final KTableValueGetterSupplier<K, V> parentValueGetterSupplier = parent.valueGetterSupplier();
 
+            @Override
             public KTableValueGetter<K, V1> get() {
                 return new KTableTransformValuesGetter(
                     parentValueGetterSupplier.get(),

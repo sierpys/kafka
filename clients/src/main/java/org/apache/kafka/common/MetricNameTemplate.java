@@ -115,10 +115,12 @@ public class MetricNameTemplate {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
+        }
         MetricNameTemplate other = (MetricNameTemplate) o;
         return Objects.equals(name, other.name) && Objects.equals(group, other.group) &&
                 Objects.equals(tags, other.tags);

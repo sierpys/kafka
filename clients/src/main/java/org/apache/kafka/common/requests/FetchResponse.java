@@ -204,10 +204,12 @@ public class FetchResponse<T extends BaseRecords> extends AbstractResponse {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
+            if (this == o) {
                 return true;
-            if (o == null || getClass() != o.getClass())
+            }
+            if (o == null || getClass() != o.getClass()) {
                 return false;
+            }
 
             AbortedTransaction that = (AbortedTransaction) o;
 
@@ -251,10 +253,12 @@ public class FetchResponse<T extends BaseRecords> extends AbstractResponse {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
+            if (this == o) {
                 return true;
-            if (o == null || getClass() != o.getClass())
+            }
+            if (o == null || getClass() != o.getClass()) {
                 return false;
+            }
 
             PartitionData that = (PartitionData) o;
 
@@ -320,15 +324,18 @@ public class FetchResponse<T extends BaseRecords> extends AbstractResponse {
                 Errors error = Errors.forCode(partitionResponseHeader.get(ERROR_CODE));
                 long highWatermark = partitionResponseHeader.getLong(HIGH_WATERMARK_KEY_NAME);
                 long lastStableOffset = INVALID_LAST_STABLE_OFFSET;
-                if (partitionResponseHeader.hasField(LAST_STABLE_OFFSET_KEY_NAME))
+                if (partitionResponseHeader.hasField(LAST_STABLE_OFFSET_KEY_NAME)) {
                     lastStableOffset = partitionResponseHeader.getLong(LAST_STABLE_OFFSET_KEY_NAME);
+                }
                 long logStartOffset = INVALID_LOG_START_OFFSET;
-                if (partitionResponseHeader.hasField(LOG_START_OFFSET_KEY_NAME))
+                if (partitionResponseHeader.hasField(LOG_START_OFFSET_KEY_NAME)) {
                     logStartOffset = partitionResponseHeader.getLong(LOG_START_OFFSET_KEY_NAME);
+                }
 
                 BaseRecords baseRecords = partitionResponse.getRecords(RECORD_SET_KEY_NAME);
-                if (!(baseRecords instanceof MemoryRecords))
+                if (!(baseRecords instanceof MemoryRecords)) {
                     throw new IllegalStateException("Unknown records type found: " + baseRecords.getClass());
+                }
                 MemoryRecords records = (MemoryRecords) baseRecords;
 
                 List<AbortedTransaction> abortedTransactions = null;
@@ -396,8 +403,9 @@ public class FetchResponse<T extends BaseRecords> extends AbstractResponse {
     @Override
     public Map<Errors, Integer> errorCounts() {
         Map<Errors, Integer> errorCounts = new HashMap<>();
-        for (PartitionData response : responseData.values())
+        for (PartitionData response : responseData.values()) {
             updateErrorCounts(errorCounts, response.error);
+        }
         return errorCounts;
     }
 
@@ -429,8 +437,9 @@ public class FetchResponse<T extends BaseRecords> extends AbstractResponse {
             sends.add(new ByteBufferSend(dest, buffer));
         }
 
-        for (Object topicData : allTopicData)
+        for (Object topicData : allTopicData) {
             addTopicData(dest, sends, (Struct) topicData);
+        }
     }
 
     private static void addTopicData(String dest, Queue<Send> sends, Struct topicData) {
@@ -444,8 +453,9 @@ public class FetchResponse<T extends BaseRecords> extends AbstractResponse {
         buffer.rewind();
         sends.add(new ByteBufferSend(dest, buffer));
 
-        for (Object partitionData : allPartitionData)
+        for (Object partitionData : allPartitionData) {
             addPartitionData(dest, sends, (Struct) partitionData);
+        }
     }
 
     private static void addPartitionData(String dest, Queue<Send> sends, Struct partitionData) {
@@ -484,8 +494,9 @@ public class FetchResponse<T extends BaseRecords> extends AbstractResponse {
                 // for KafkaStorageException. In this case the client library will translate KafkaStorageException to
                 // UnknownServerException which is not retriable. We can ensure that consumer will update metadata and retry
                 // by converting the KafkaStorageException to NotLeaderForPartitionException in the response if FetchRequest version <= 5
-                if (errorCode == Errors.KAFKA_STORAGE_ERROR.code() && version <= 5)
+                if (errorCode == Errors.KAFKA_STORAGE_ERROR.code() && version <= 5) {
                     errorCode = Errors.NOT_LEADER_FOR_PARTITION.code();
+                }
                 Struct partitionData = topicData.instance(PARTITIONS_KEY_NAME);
                 Struct partitionDataHeader = partitionData.instance(PARTITION_HEADER_KEY_NAME);
                 partitionDataHeader.set(PARTITION_ID, partitionEntry.getKey());
@@ -508,8 +519,9 @@ public class FetchResponse<T extends BaseRecords> extends AbstractResponse {
                         partitionDataHeader.set(ABORTED_TRANSACTIONS_KEY_NAME, abortedTransactionStructs.toArray());
                     }
                 }
-                if (partitionDataHeader.hasField(LOG_START_OFFSET_KEY_NAME))
+                if (partitionDataHeader.hasField(LOG_START_OFFSET_KEY_NAME)) {
                     partitionDataHeader.set(LOG_START_OFFSET_KEY_NAME, fetchPartitionData.logStartOffset);
+                }
 
                 partitionData.set(PARTITION_HEADER_KEY_NAME, partitionDataHeader);
                 partitionData.set(RECORD_SET_KEY_NAME, fetchPartitionData.records);

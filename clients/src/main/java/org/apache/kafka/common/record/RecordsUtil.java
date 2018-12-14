@@ -45,8 +45,9 @@ public class RecordsUtil {
         long startNanos = time.nanoseconds();
 
         for (RecordBatch batch : batches) {
-            if (toMagic < RecordBatch.MAGIC_VALUE_V2 && batch.isControlBatch())
+            if (toMagic < RecordBatch.MAGIC_VALUE_V2 && batch.isControlBatch()) {
                 continue;
+            }
 
             if (batch.magic() <= toMagic) {
                 totalSizeEstimate += batch.sizeInBytes();
@@ -55,16 +56,19 @@ public class RecordsUtil {
                 List<Record> records = new ArrayList<>();
                 for (Record record : batch) {
                     // See the method javadoc for an explanation
-                    if (toMagic > RecordBatch.MAGIC_VALUE_V1 || batch.isCompressed() || record.offset() >= firstOffset)
+                    if (toMagic > RecordBatch.MAGIC_VALUE_V1 || batch.isCompressed() || record.offset() >= firstOffset) {
                         records.add(record);
+                    }
                 }
-                if (records.isEmpty())
+                if (records.isEmpty()) {
                     continue;
+                }
                 final long baseOffset;
-                if (batch.magic() >= RecordBatch.MAGIC_VALUE_V2 && toMagic >= RecordBatch.MAGIC_VALUE_V2)
+                if (batch.magic() >= RecordBatch.MAGIC_VALUE_V2 && toMagic >= RecordBatch.MAGIC_VALUE_V2) {
                     baseOffset = batch.baseOffset();
-                else
+                } else {
                     baseOffset = records.get(0).offset();
+                }
                 totalSizeEstimate += AbstractRecords.estimateSizeInBytes(toMagic, baseOffset, batch.compressionType(), records);
                 recordBatchAndRecordsList.add(new RecordBatchAndRecords(batch, records, baseOffset));
             }
@@ -104,10 +108,11 @@ public class RecordsUtil {
                 timestampType, recordBatchAndRecords.baseOffset, logAppendTime);
         for (Record record : recordBatchAndRecords.records) {
             // Down-convert this record. Ignore headers when down-converting to V0 and V1 since they are not supported
-            if (magic > RecordBatch.MAGIC_VALUE_V1)
+            if (magic > RecordBatch.MAGIC_VALUE_V1) {
                 builder.append(record);
-            else
+            } else {
                 builder.appendWithOffset(record.offset(), record.timestamp(), record.key(), record.value());
+            }
         }
 
         builder.close();

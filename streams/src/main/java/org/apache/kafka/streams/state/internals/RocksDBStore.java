@@ -160,6 +160,7 @@ public class RocksDBStore implements KeyValueStore<Bytes, byte[]> {
         open = true;
     }
 
+    @Override
     public void init(final ProcessorContext context,
                      final StateStore root) {
         // open the DB dir
@@ -535,10 +536,11 @@ public class RocksDBStore implements KeyValueStore<Bytes, byte[]> {
             if (next == null) {
                 return allDone();
             } else {
-                if (comparator.compare(next.key.get(), this.rawToKey) <= 0)
+                if (comparator.compare(next.key.get(), this.rawToKey) <= 0) {
                     return next;
-                else
+                } else {
                     return allDone();
+                }
             }
         }
     }

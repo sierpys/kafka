@@ -149,10 +149,12 @@ public class GlobalStateManagerImpl extends AbstractStateManager implements Glob
         return getGlobalStore(name);
     }
 
+    @Override
     public File baseDir() {
         return baseDir;
     }
 
+    @Override
     public void register(final StateStore store,
                          final StateRestoreCallback stateRestoreCallback) {
 

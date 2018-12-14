@@ -231,8 +231,9 @@ public class KafkaConfigBackingStore implements ConfigBackingStore {
         this.offset = -1;
 
         this.topic = config.getString(DistributedConfig.CONFIG_TOPIC_CONFIG);
-        if (this.topic == null || this.topic.trim().length() == 0)
+        if (this.topic == null || this.topic.trim().length() == 0) {
             throw new ConfigException("Must specify topic for connector configuration.");
+        }
 
         configLog = setupAndCreateKafkaBasedLog(this.topic, config);
         this.configTransformer = configTransformer;
@@ -478,8 +479,9 @@ public class KafkaConfigBackingStore implements ConfigBackingStore {
 
                         // If for some reason we still have configs for the connector, add back the default
                         // STARTED state to ensure each connector always has a valid target state.
-                        if (connectorConfigs.containsKey(connectorName))
+                        if (connectorConfigs.containsKey(connectorName)) {
                             connectorTargetStates.put(connectorName, TargetState.STARTED);
+                        }
                     } else {
                         if (!(value.value() instanceof Map)) {
                             log.error("Found target state ({}) in wrong format: {}",  record.key(), value.value().getClass());
@@ -505,8 +507,9 @@ public class KafkaConfigBackingStore implements ConfigBackingStore {
 
                 // Note that we do not notify the update listener if the target state has been removed.
                 // Instead we depend on the removal callback of the connector config itself to notify the worker.
-                if (started && !removed)
+                if (started && !removed) {
                     updateListener.onConnectorTargetStateChange(connectorName);
+                }
 
             } else if (record.key().startsWith(CONNECTOR_PREFIX)) {
                 String connectorName = record.key().substring(CONNECTOR_PREFIX.length());
@@ -534,15 +537,17 @@ public class KafkaConfigBackingStore implements ConfigBackingStore {
 
                         // Set the initial state of the connector to STARTED, which ensures that any connectors
                         // which were created with 0.9 Connect will be initialized in the STARTED state.
-                        if (!connectorTargetStates.containsKey(connectorName))
+                        if (!connectorTargetStates.containsKey(connectorName)) {
                             connectorTargetStates.put(connectorName, TargetState.STARTED);
+                        }
                     }
                 }
                 if (started) {
-                    if (removed)
+                    if (removed) {
                         updateListener.onConnectorConfigRemove(connectorName);
-                    else
+                    } else {
                         updateListener.onConnectorConfigUpdate(connectorName);
+                    }
                 }
             } else if (record.key().startsWith(TASK_PREFIX)) {
                 synchronized (lock) {
@@ -623,14 +628,16 @@ public class KafkaConfigBackingStore implements ConfigBackingStore {
                     // Always clear the deferred entries, even if we didn't apply them. If they represented an inconsistent
                     // update, then we need to see a completely fresh set of configs after this commit message, so we don't
                     // want any of these outdated configs
-                    if (deferred != null)
+                    if (deferred != null) {
                         deferred.clear();
+                    }
 
                     connectorTaskCounts.put(connectorName, newTaskCount);
                 }
 
-                if (started)
+                if (started) {
                     updateListener.onTaskConfigUpdate(updatedTasks);
+                }
             } else {
                 log.error("Discarding config update record with invalid key: " + record.key());
             }
@@ -640,7 +647,9 @@ public class KafkaConfigBackingStore implements ConfigBackingStore {
 
     private ConnectorTaskId parseTaskId(String key) {
         String[] parts = key.split("-");
-        if (parts.length < 3) return null;
+        if (parts.length < 3) {
+            return null;
+        }
 
         try {
             int taskNum = Integer.parseInt(parts[parts.length - 1]);
@@ -689,24 +698,28 @@ public class KafkaConfigBackingStore implements ConfigBackingStore {
         // logic for writing configs ensures all the task configs are written (and reads them back) before writing the
         // commit message.
 
-        if (idSet.size() < expectedSize)
+        if (idSet.size() < expectedSize) {
             return false;
+        }
 
-        for (int i = 0; i < expectedSize; i++)
-            if (!idSet.contains(i))
+        for (int i = 0; i < expectedSize; i++) {
+            if (!idSet.contains(i)) {
                 return false;
+            }
+        }
         return true;
     }
 
     // Convert an integer value extracted from a schemaless struct to an int. This handles potentially different
     // encodings by different Converters.
     private static int intValue(Object value) {
-        if (value instanceof Integer)
+        if (value instanceof Integer) {
             return (int) value;
-        else if (value instanceof Long)
+        } else if (value instanceof Long) {
             return (int) (long) value;
-        else
+        } else {
             throw new ConnectException("Expected integer value to be either Integer or Long");
+        }
     }
 }
 

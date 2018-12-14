@@ -98,15 +98,17 @@ public class SubscriptionState {
      * @param type The given subscription type
      */
     private void setSubscriptionType(SubscriptionType type) {
-        if (this.subscriptionType == SubscriptionType.NONE)
+        if (this.subscriptionType == SubscriptionType.NONE) {
             this.subscriptionType = type;
-        else if (this.subscriptionType != type)
+        } else if (this.subscriptionType != type) {
             throw new IllegalStateException(SUBSCRIPTION_EXCEPTION_MESSAGE);
+        }
     }
 
     public void subscribe(Set<String> topics, ConsumerRebalanceListener listener) {
-        if (listener == null)
+        if (listener == null) {
             throw new IllegalArgumentException("RebalanceListener cannot be null");
+        }
 
         setSubscriptionType(SubscriptionType.AUTO_TOPICS);
 
@@ -116,9 +118,10 @@ public class SubscriptionState {
     }
 
     public void subscribeFromPattern(Set<String> topics) {
-        if (subscriptionType != SubscriptionType.AUTO_PATTERN)
+        if (subscriptionType != SubscriptionType.AUTO_PATTERN) {
             throw new IllegalArgumentException("Attempt to subscribe from pattern while subscription type set to " +
                     subscriptionType);
+        }
 
         changeSubscription(topics);
     }
@@ -136,8 +139,9 @@ public class SubscriptionState {
      * @param topics The topics to add to the group subscription
      */
     public void groupSubscribe(Collection<String> topics) {
-        if (this.subscriptionType == SubscriptionType.USER_ASSIGNED)
+        if (this.subscriptionType == SubscriptionType.USER_ASSIGNED) {
             throw new IllegalStateException(SUBSCRIPTION_EXCEPTION_MESSAGE);
+        }
         this.groupSubscription.addAll(topics);
     }
 
@@ -162,8 +166,9 @@ public class SubscriptionState {
             Map<TopicPartition, TopicPartitionState> partitionToState = new HashMap<>();
             for (TopicPartition partition : partitions) {
                 TopicPartitionState state = assignment.stateValue(partition);
-                if (state == null)
+                if (state == null) {
                     state = new TopicPartitionState();
+                }
                 partitionToState.put(partition, state);
             }
             this.assignment.set(partitionToState);
@@ -175,29 +180,34 @@ public class SubscriptionState {
      * note this is different from {@link #assignFromUser(Set)} which directly set the assignment from user inputs
      */
     public void assignFromSubscribed(Collection<TopicPartition> assignments) {
-        if (!this.partitionsAutoAssigned())
+        if (!this.partitionsAutoAssigned()) {
             throw new IllegalArgumentException("Attempt to dynamically assign partitions while manual assignment in use");
+        }
 
         Map<TopicPartition, TopicPartitionState> assignedPartitionStates = partitionToStateMap(assignments);
         fireOnAssignment(assignedPartitionStates.keySet());
 
         if (this.subscribedPattern != null) {
             for (TopicPartition tp : assignments) {
-                if (!this.subscribedPattern.matcher(tp.topic()).matches())
+                if (!this.subscribedPattern.matcher(tp.topic()).matches()) {
                     throw new IllegalArgumentException("Assigned partition " + tp + " for non-subscribed topic regex pattern; subscription pattern is " + this.subscribedPattern);
+                }
             }
         } else {
-            for (TopicPartition tp : assignments)
-                if (!this.subscription.contains(tp.topic()))
+            for (TopicPartition tp : assignments) {
+                if (!this.subscription.contains(tp.topic())) {
                     throw new IllegalArgumentException("Assigned partition " + tp + " for non-subscribed topic; subscription is " + this.subscription);
+                }
+            }
         }
 
         this.assignment.set(assignedPartitionStates);
     }
 
     public void subscribe(Pattern pattern, ConsumerRebalanceListener listener) {
-        if (listener == null)
+        if (listener == null) {
             throw new IllegalArgumentException("RebalanceListener cannot be null");
+        }
 
         setSubscriptionType(SubscriptionType.AUTO_PATTERN);
 
@@ -255,8 +265,9 @@ public class SubscriptionState {
 
     private TopicPartitionState assignedState(TopicPartition tp) {
         TopicPartitionState state = this.assignment.stateValue(tp);
-        if (state == null)
+        if (state == null) {
             throw new IllegalStateException("No current assignment for partition " + tp);
+        }
         return state;
     }
 
@@ -271,8 +282,9 @@ public class SubscriptionState {
     public List<TopicPartition> fetchablePartitions() {
         List<TopicPartition> fetchable = new ArrayList<>(assignment.size());
         for (PartitionStates.PartitionState<TopicPartitionState> state : assignment.partitionStates()) {
-            if (state.value().isFetchable())
+            if (state.value().isFetchable()) {
                 fetchable.add(state.topicPartition());
+            }
         }
         return fetchable;
     }
@@ -291,10 +303,11 @@ public class SubscriptionState {
 
     public Long partitionLag(TopicPartition tp, IsolationLevel isolationLevel) {
         TopicPartitionState topicPartitionState = assignedState(tp);
-        if (isolationLevel == IsolationLevel.READ_COMMITTED)
+        if (isolationLevel == IsolationLevel.READ_COMMITTED) {
             return topicPartitionState.lastStableOffset == null ? null : topicPartitionState.lastStableOffset - topicPartitionState.position;
-        else
+        } else {
             return topicPartitionState.highWatermark == null ? null : topicPartitionState.highWatermark - topicPartitionState.position;
+        }
     }
 
     public Long partitionLead(TopicPartition tp) {
@@ -317,8 +330,9 @@ public class SubscriptionState {
     public Map<TopicPartition, OffsetAndMetadata> allConsumed() {
         Map<TopicPartition, OffsetAndMetadata> allConsumed = new HashMap<>();
         for (PartitionStates.PartitionState<TopicPartitionState> state : assignment.partitionStates()) {
-            if (state.value().hasValidPosition())
+            if (state.value().hasValidPosition()) {
                 allConsumed.put(state.topicPartition(), new OffsetAndMetadata(state.value().position));
+            }
         }
         return allConsumed;
     }
@@ -351,8 +365,9 @@ public class SubscriptionState {
 
     public boolean hasAllFetchPositions() {
         for (PartitionStates.PartitionState<TopicPartitionState> state : assignment.partitionStates()) {
-            if (!state.value().hasValidPosition())
+            if (!state.value().hasValidPosition()) {
                 return false;
+            }
         }
         return true;
     }
@@ -360,8 +375,9 @@ public class SubscriptionState {
     public Set<TopicPartition> missingFetchPositions() {
         Set<TopicPartition> missing = new HashSet<>();
         for (PartitionStates.PartitionState<TopicPartitionState> state : assignment.partitionStates()) {
-            if (state.value().isMissingPosition())
+            if (state.value().isMissingPosition()) {
                 missing.add(state.topicPartition());
+            }
         }
         return missing;
     }
@@ -372,23 +388,26 @@ public class SubscriptionState {
             TopicPartition tp = state.topicPartition();
             TopicPartitionState partitionState = state.value();
             if (partitionState.isMissingPosition()) {
-                if (defaultResetStrategy == OffsetResetStrategy.NONE)
+                if (defaultResetStrategy == OffsetResetStrategy.NONE) {
                     partitionsWithNoOffsets.add(tp);
-                else
+                } else {
                     partitionState.reset(defaultResetStrategy);
+                }
             }
         }
 
-        if (!partitionsWithNoOffsets.isEmpty())
+        if (!partitionsWithNoOffsets.isEmpty()) {
             throw new NoOffsetForPartitionException(partitionsWithNoOffsets);
+        }
     }
 
     public Set<TopicPartition> partitionsNeedingReset(long nowMs) {
         Set<TopicPartition> partitions = new HashSet<>();
         for (PartitionStates.PartitionState<TopicPartitionState> state : assignment.partitionStates()) {
             TopicPartitionState partitionState = state.value();
-            if (partitionState.awaitingReset() && partitionState.isResetAllowed(nowMs))
+            if (partitionState.awaitingReset() && partitionState.isResetAllowed(nowMs)) {
                 partitions.add(state.topicPartition());
+            }
         }
         return partitions;
     }
@@ -418,8 +437,9 @@ public class SubscriptionState {
     }
 
     public void resetFailed(Set<TopicPartition> partitions, long nextRetryTimeMs) {
-        for (TopicPartition partition : partitions)
+        for (TopicPartition partition : partitions) {
             assignedState(partition).resetFailed(nextRetryTimeMs);
+        }
     }
 
     public void movePartitionToEnd(TopicPartition tp) {
@@ -435,14 +455,16 @@ public class SubscriptionState {
     }
 
     public void fireOnAssignment(Set<TopicPartition> assignment) {
-        for (Listener listener : listeners)
+        for (Listener listener : listeners) {
             listener.onAssignment(assignment);
+        }
     }
 
     private static Map<TopicPartition, TopicPartitionState> partitionToStateMap(Collection<TopicPartition> assignments) {
         Map<TopicPartition, TopicPartitionState> map = new HashMap<>(assignments.size());
-        for (TopicPartition tp : assignments)
+        for (TopicPartition tp : assignments) {
             map.put(tp, new TopicPartitionState());
+        }
         return map;
     }
 
@@ -502,8 +524,9 @@ public class SubscriptionState {
         }
 
         private void position(long offset) {
-            if (!hasValidPosition())
+            if (!hasValidPosition()) {
                 throw new IllegalStateException("Cannot set a new position without a valid current position");
+            }
             this.position = offset;
         }
 

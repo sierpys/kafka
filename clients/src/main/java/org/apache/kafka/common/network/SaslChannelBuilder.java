@@ -113,10 +113,11 @@ public class SaslChannelBuilder implements ChannelBuilder, ListenerReconfigurabl
     public void configure(Map<String, ?> configs) throws KafkaException {
         try {
             this.configs = configs;
-            if (mode == Mode.SERVER)
+            if (mode == Mode.SERVER) {
                 createServerCallbackHandlers(configs);
-            else
+            } else {
                 createClientCallbackHandler(configs);
+            }
             for (Map.Entry<String, AuthenticateCallbackHandler> entry : saslCallbackHandlers.entrySet()) {
                 String mechanism = entry.getKey();
                 entry.getValue().configure(configs, mechanism, jaasContexts.get(mechanism).configurationEntries());
@@ -132,8 +133,9 @@ public class SaslChannelBuilder implements ChannelBuilder, ListenerReconfigurabl
                 }
                 @SuppressWarnings("unchecked")
                 List<String> principalToLocalRules = (List<String>) configs.get(BrokerSecurityConfigs.SASL_KERBEROS_PRINCIPAL_TO_LOCAL_RULES_CONFIG);
-                if (principalToLocalRules != null)
+                if (principalToLocalRules != null) {
                     kerberosShortNamer = KerberosShortNamer.fromUnparsedRules(defaultRealm, principalToLocalRules);
+                }
             }
             for (Map.Entry<String, JaasContext> entry : jaasContexts.entrySet()) {
                 String mechanism = entry.getKey();
@@ -161,14 +163,16 @@ public class SaslChannelBuilder implements ChannelBuilder, ListenerReconfigurabl
 
     @Override
     public void validateReconfiguration(Map<String, ?> configs) {
-        if (this.securityProtocol == SecurityProtocol.SASL_SSL)
+        if (this.securityProtocol == SecurityProtocol.SASL_SSL) {
             sslFactory.validateReconfiguration(configs);
+        }
     }
 
     @Override
     public void reconfigure(Map<String, ?> configs) {
-        if (this.securityProtocol == SecurityProtocol.SASL_SSL)
+        if (this.securityProtocol == SecurityProtocol.SASL_SSL) {
             sslFactory.reconfigure(configs);
+        }
     }
 
     @Override
@@ -208,11 +212,13 @@ public class SaslChannelBuilder implements ChannelBuilder, ListenerReconfigurabl
 
     @Override
     public void close()  {
-        for (LoginManager loginManager : loginManagers.values())
+        for (LoginManager loginManager : loginManagers.values()) {
             loginManager.release();
+        }
         loginManagers.clear();
-        for (AuthenticateCallbackHandler handler : saslCallbackHandlers.values())
+        for (AuthenticateCallbackHandler handler : saslCallbackHandlers.values()) {
             handler.close();
+        }
     }
 
     private TransportLayer buildTransportLayer(String id, SelectionKey key, SocketChannel socketChannel) throws IOException {
@@ -273,8 +279,9 @@ public class SaslChannelBuilder implements ChannelBuilder, ListenerReconfigurabl
 
     private void createClientCallbackHandler(Map<String, ?> configs) {
         Class<? extends AuthenticateCallbackHandler> clazz = (Class<? extends AuthenticateCallbackHandler>) configs.get(SaslConfigs.SASL_CLIENT_CALLBACK_HANDLER_CLASS);
-        if (clazz == null)
+        if (clazz == null) {
             clazz = clientCallbackHandlerClass();
+        }
         AuthenticateCallbackHandler callbackHandler = Utils.newInstance(clazz);
         saslCallbackHandlers.put(clientSaslMechanism, callbackHandler);
     }
@@ -285,25 +292,28 @@ public class SaslChannelBuilder implements ChannelBuilder, ListenerReconfigurabl
             String prefix = ListenerName.saslMechanismPrefix(mechanism);
             Class<? extends AuthenticateCallbackHandler> clazz =
                     (Class<? extends AuthenticateCallbackHandler>) configs.get(prefix + BrokerSecurityConfigs.SASL_SERVER_CALLBACK_HANDLER_CLASS);
-            if (clazz != null)
+            if (clazz != null) {
                 callbackHandler = Utils.newInstance(clazz);
-            else if (mechanism.equals(PlainSaslServer.PLAIN_MECHANISM))
+            } else if (mechanism.equals(PlainSaslServer.PLAIN_MECHANISM)) {
                 callbackHandler = new PlainServerCallbackHandler();
-            else if (ScramMechanism.isScram(mechanism))
+            } else if (ScramMechanism.isScram(mechanism)) {
                 callbackHandler = new ScramServerCallbackHandler(credentialCache.cache(mechanism, ScramCredential.class), tokenCache);
-            else if (mechanism.equals(OAuthBearerLoginModule.OAUTHBEARER_MECHANISM))
+            } else if (mechanism.equals(OAuthBearerLoginModule.OAUTHBEARER_MECHANISM)) {
                 callbackHandler = new OAuthBearerUnsecuredValidatorCallbackHandler();
-            else
+            } else {
                 callbackHandler = new SaslServerCallbackHandler();
+            }
             saslCallbackHandlers.put(mechanism, callbackHandler);
         }
     }
 
     private Class<? extends Login> defaultLoginClass(Map<String, ?> configs) {
-        if (jaasContexts.containsKey(SaslConfigs.GSSAPI_MECHANISM))
+        if (jaasContexts.containsKey(SaslConfigs.GSSAPI_MECHANISM)) {
             return KerberosLogin.class;
-        if (OAuthBearerLoginModule.OAUTHBEARER_MECHANISM.equals(clientSaslMechanism))
+        }
+        if (OAuthBearerLoginModule.OAUTHBEARER_MECHANISM.equals(clientSaslMechanism)) {
             return OAuthBearerRefreshingLogin.class;
+        }
         return DefaultLogin.class;
     }
 

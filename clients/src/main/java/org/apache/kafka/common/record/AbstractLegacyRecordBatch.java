@@ -228,8 +228,9 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
     }
 
     private CloseableIterator<Record> iterator(BufferSupplier bufferSupplier) {
-        if (isCompressed())
+        if (isCompressed()) {
             return new DeepRecordsIterator(this, false, Integer.MAX_VALUE, bufferSupplier);
+        }
 
         return new CloseableIterator<Record>() {
             private boolean hasNext = true;
@@ -244,8 +245,9 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
 
             @Override
             public Record next() {
-                if (!hasNext)
+                if (!hasNext) {
                     throw new NoSuchElementException();
+                }
                 hasNext = false;
                 return AbstractLegacyRecordBatch.this;
             }
@@ -284,23 +286,28 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
             this.offsetAndSizeBuffer = ByteBuffer.allocate(Records.LOG_OVERHEAD);
         }
 
+        @Override
         public AbstractLegacyRecordBatch nextBatch() throws IOException {
             offsetAndSizeBuffer.clear();
             Utils.readFully(stream, offsetAndSizeBuffer);
-            if (offsetAndSizeBuffer.hasRemaining())
+            if (offsetAndSizeBuffer.hasRemaining()) {
                 return null;
+            }
 
             long offset = offsetAndSizeBuffer.getLong(Records.OFFSET_OFFSET);
             int size = offsetAndSizeBuffer.getInt(Records.SIZE_OFFSET);
-            if (size < LegacyRecord.RECORD_OVERHEAD_V0)
+            if (size < LegacyRecord.RECORD_OVERHEAD_V0) {
                 throw new CorruptRecordException(String.format("Record size is less than the minimum record overhead (%d)", LegacyRecord.RECORD_OVERHEAD_V0));
-            if (size > maxMessageSize)
+            }
+            if (size > maxMessageSize) {
                 throw new CorruptRecordException(String.format("Record size exceeds the largest allowable message size (%d).", maxMessageSize));
+            }
 
             ByteBuffer batchBuffer = ByteBuffer.allocate(size);
             Utils.readFully(stream, batchBuffer);
-            if (batchBuffer.hasRemaining())
+            if (batchBuffer.hasRemaining()) {
                 return null;
+            }
             batchBuffer.flip();
 
             return new BasicLegacyRecordBatch(offset, new LegacyRecord(batchBuffer));
@@ -318,14 +325,16 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
                                     BufferSupplier bufferSupplier) {
             LegacyRecord wrapperRecord = wrapperEntry.outerRecord();
             this.wrapperMagic = wrapperRecord.magic();
-            if (wrapperMagic != RecordBatch.MAGIC_VALUE_V0 && wrapperMagic != RecordBatch.MAGIC_VALUE_V1)
+            if (wrapperMagic != RecordBatch.MAGIC_VALUE_V0 && wrapperMagic != RecordBatch.MAGIC_VALUE_V1) {
                 throw new InvalidRecordException("Invalid wrapper magic found in legacy deep record iterator " + wrapperMagic);
+            }
 
             CompressionType compressionType = wrapperRecord.compressionType();
             ByteBuffer wrapperValue = wrapperRecord.value();
-            if (wrapperValue == null)
+            if (wrapperValue == null) {
                 throw new InvalidRecordException("Found invalid compressed record set with null value (magic = " +
                         wrapperMagic + ")");
+            }
 
             InputStream stream = compressionType.wrapForInput(wrapperValue, wrapperRecord.magic(), bufferSupplier);
             LogInputStream<AbstractLegacyRecordBatch> logStream = new DataLogInputStream(stream, maxMessageSize);
@@ -340,15 +349,17 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
             try {
                 while (true) {
                     AbstractLegacyRecordBatch innerEntry = logStream.nextBatch();
-                    if (innerEntry == null)
+                    if (innerEntry == null) {
                         break;
+                    }
 
                     LegacyRecord record = innerEntry.outerRecord();
                     byte magic = record.magic();
 
-                    if (ensureMatchingMagic && magic != wrapperMagic)
+                    if (ensureMatchingMagic && magic != wrapperMagic) {
                         throw new InvalidRecordException("Compressed message magic " + magic +
                                 " does not match wrapper magic " + wrapperMagic);
+                    }
 
                     if (magic == RecordBatch.MAGIC_VALUE_V1) {
                         LegacyRecord recordWithTimestamp = new LegacyRecord(
@@ -361,8 +372,9 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
                     innerEntries.addLast(innerEntry);
                 }
 
-                if (innerEntries.isEmpty())
+                if (innerEntries.isEmpty()) {
                     throw new InvalidRecordException("Found invalid compressed record set with no inner records");
+                }
 
                 if (wrapperMagic == RecordBatch.MAGIC_VALUE_V1) {
                     if (lastOffsetFromWrapper == 0) {
@@ -370,10 +382,11 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
                         this.absoluteBaseOffset = 0;
                     } else {
                         long lastInnerOffset = innerEntries.getLast().offset();
-                        if (lastOffsetFromWrapper < lastInnerOffset)
+                        if (lastOffsetFromWrapper < lastInnerOffset) {
                             throw new InvalidRecordException("Found invalid wrapper offset in compressed v1 message set, " +
                                     "wrapper offset '" + lastOffsetFromWrapper + "' is less than the last inner message " +
                                     "offset '" + lastInnerOffset + "' and it is not zero.");
+                        }
                         this.absoluteBaseOffset = lastOffsetFromWrapper - lastInnerOffset;
                     }
                 } else {
@@ -388,8 +401,9 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
 
         @Override
         protected Record makeNext() {
-            if (innerEntries.isEmpty())
+            if (innerEntries.isEmpty()) {
                 return allDone();
+            }
 
             AbstractLegacyRecordBatch entry = innerEntries.remove();
 
@@ -399,8 +413,9 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
                 entry = new BasicLegacyRecordBatch(absoluteOffset, entry.outerRecord());
             }
 
-            if (entry.isCompressed())
+            if (entry.isCompressed()) {
                 throw new InvalidRecordException("Inner messages must not be compressed");
+            }
 
             return entry;
         }
@@ -430,10 +445,12 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
+            if (this == o) {
                 return true;
-            if (o == null || getClass() != o.getClass())
+            }
+            if (o == null || getClass() != o.getClass()) {
                 return false;
+            }
 
             BasicLegacyRecordBatch that = (BasicLegacyRecordBatch) o;
 
@@ -477,13 +494,15 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
 
         @Override
         public void setMaxTimestamp(TimestampType timestampType, long timestamp) {
-            if (record.magic() == RecordBatch.MAGIC_VALUE_V0)
+            if (record.magic() == RecordBatch.MAGIC_VALUE_V0) {
                 throw new UnsupportedOperationException("Cannot set timestamp for a record with magic = 0");
+            }
 
             long currentTimestamp = record.timestamp();
             // We don't need to recompute crc if the timestamp is not updated.
-            if (record.timestampType() == timestampType && currentTimestamp == timestamp)
+            if (record.timestampType() == timestampType && currentTimestamp == timestamp) {
                 return;
+            }
 
             setTimestampAndUpdateCrc(timestampType, timestamp);
         }
@@ -508,10 +527,12 @@ public abstract class AbstractLegacyRecordBatch extends AbstractRecordBatch impl
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
+            if (this == o) {
                 return true;
-            if (o == null || getClass() != o.getClass())
+            }
+            if (o == null || getClass() != o.getClass()) {
                 return false;
+            }
 
             ByteBufferLegacyRecordBatch that = (ByteBufferLegacyRecordBatch) o;
 

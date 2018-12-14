@@ -95,8 +95,9 @@ public class DeleteTopicsRequest extends AbstractRequest {
         super(version);
         Object[] topicsArray = struct.getArray(TOPICS_KEY_NAME);
         Set<String> topics = new HashSet<>(topicsArray.length);
-        for (Object topic : topicsArray)
+        for (Object topic : topicsArray) {
             topics.add((String) topic);
+        }
 
         this.topics = topics;
         this.timeout = struct.getInt(TIMEOUT_KEY_NAME);
@@ -113,8 +114,9 @@ public class DeleteTopicsRequest extends AbstractRequest {
     @Override
     public AbstractResponse getErrorResponse(int throttleTimeMs, Throwable e) {
         Map<String, Errors> topicErrors = new HashMap<>();
-        for (String topic : topics)
+        for (String topic : topics) {
             topicErrors.put(topic, Errors.forException(e));
+        }
 
         switch (version()) {
             case 0:

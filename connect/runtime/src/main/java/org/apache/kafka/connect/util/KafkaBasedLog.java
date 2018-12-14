@@ -136,13 +136,15 @@ public class KafkaBasedLog<K, V> {
             partitionInfos = consumer.partitionsFor(topic);
             Utils.sleep(Math.min(time.milliseconds() - started, 1000));
         }
-        if (partitionInfos == null)
+        if (partitionInfos == null) {
             throw new ConnectException("Could not look up partition metadata for offset backing store topic in" +
                     " allotted period. This could indicate a connectivity issue, unavailable topic partitions, or if" +
                     " this is your first use of the topic it may have taken too long to create.");
+        }
 
-        for (PartitionInfo partition : partitionInfos)
+        for (PartitionInfo partition : partitionInfos) {
             partitions.add(new TopicPartition(partition.topic(), partition.partition()));
+        }
         consumer.assign(partitions);
 
         readToLogEnd();
@@ -254,8 +256,9 @@ public class KafkaBasedLog<K, V> {
     private void poll(long timeoutMs) {
         try {
             ConsumerRecords<K, V> records = consumer.poll(timeoutMs);
-            for (ConsumerRecord<K, V> record : records)
+            for (ConsumerRecord<K, V> record : records) {
                 consumedCallback.onCompletion(null, record);
+            }
         } catch (WakeupException e) {
             // Expected on get() or stop(). The calling code should handle this
             throw e;
@@ -275,9 +278,9 @@ public class KafkaBasedLog<K, V> {
             Iterator<Map.Entry<TopicPartition, Long>> it = endOffsets.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<TopicPartition, Long> entry = it.next();
-                if (consumer.position(entry.getKey()) >= entry.getValue())
+                if (consumer.position(entry.getKey()) >= entry.getValue()) {
                     it.remove();
-                else {
+                } else {
                     poll(Integer.MAX_VALUE);
                     break;
                 }
@@ -298,8 +301,9 @@ public class KafkaBasedLog<K, V> {
                 while (true) {
                     int numCallbacks;
                     synchronized (KafkaBasedLog.this) {
-                        if (stopRequested)
+                        if (stopRequested) {
                             break;
+                        }
                         numCallbacks = readLogEndOffsetCallbacks.size();
                     }
 

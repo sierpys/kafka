@@ -90,10 +90,11 @@ public class TemperatureDemo {
             .groupByKey()
             .windowedBy(TimeWindows.of(TimeUnit.SECONDS.toMillis(TEMPERATURE_WINDOW_SIZE)))
             .reduce((value1, value2) -> {
-                if (Integer.parseInt(value1) > Integer.parseInt(value2))
+                if (Integer.parseInt(value1) > Integer.parseInt(value2)) {
                     return value1;
-                else
+                } else {
                     return value2;
+                }
             })
             .toStream()
             .filter((key, value) -> Integer.parseInt(value) > TEMPERATURE_THRESHOLD);

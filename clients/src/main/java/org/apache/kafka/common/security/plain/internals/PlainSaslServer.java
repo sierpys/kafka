@@ -87,8 +87,9 @@ public class PlainSaslServer implements SaslServer {
         } catch (UnsupportedEncodingException e) {
             throw new SaslException("UTF-8 encoding not supported", e);
         }
-        if (tokens.length != 3)
+        if (tokens.length != 3) {
             throw new SaslException("Invalid SASL/PLAIN response: expected 3 tokens, got " + tokens.length);
+        }
         String authorizationIdFromClient = tokens[0];
         String username = tokens[1];
         String password = tokens[2];
@@ -107,10 +108,12 @@ public class PlainSaslServer implements SaslServer {
         } catch (Throwable e) {
             throw new SaslAuthenticationException("Authentication failed: credentials for user could not be verified", e);
         }
-        if (!authenticateCallback.authenticated())
+        if (!authenticateCallback.authenticated()) {
             throw new SaslAuthenticationException("Authentication failed: Invalid username or password");
-        if (!authorizationIdFromClient.isEmpty() && !authorizationIdFromClient.equals(username))
+        }
+        if (!authorizationIdFromClient.isEmpty() && !authorizationIdFromClient.equals(username)) {
             throw new SaslAuthenticationException("Authentication failed: Client requested an authorization id that is different from username");
+        }
 
         this.authorizationId = username;
 
@@ -120,8 +123,9 @@ public class PlainSaslServer implements SaslServer {
 
     @Override
     public String getAuthorizationID() {
-        if (!complete)
+        if (!complete) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return authorizationId;
     }
 
@@ -132,8 +136,9 @@ public class PlainSaslServer implements SaslServer {
 
     @Override
     public Object getNegotiatedProperty(String propName) {
-        if (!complete)
+        if (!complete) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return null;
     }
 
@@ -144,15 +149,17 @@ public class PlainSaslServer implements SaslServer {
 
     @Override
     public byte[] unwrap(byte[] incoming, int offset, int len) throws SaslException {
-        if (!complete)
+        if (!complete) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return Arrays.copyOfRange(incoming, offset, offset + len);
     }
 
     @Override
     public byte[] wrap(byte[] outgoing, int offset, int len) throws SaslException {
-        if (!complete)
+        if (!complete) {
             throw new IllegalStateException("Authentication exchange has not completed");
+        }
         return Arrays.copyOfRange(outgoing, offset, offset + len);
     }
 
@@ -166,20 +173,24 @@ public class PlainSaslServer implements SaslServer {
         public SaslServer createSaslServer(String mechanism, String protocol, String serverName, Map<String, ?> props, CallbackHandler cbh)
             throws SaslException {
 
-            if (!PLAIN_MECHANISM.equals(mechanism))
+            if (!PLAIN_MECHANISM.equals(mechanism)) {
                 throw new SaslException(String.format("Mechanism \'%s\' is not supported. Only PLAIN is supported.", mechanism));
+            }
 
             return new PlainSaslServer(cbh);
         }
 
         @Override
         public String[] getMechanismNames(Map<String, ?> props) {
-            if (props == null) return new String[]{PLAIN_MECHANISM};
-            String noPlainText = (String) props.get(Sasl.POLICY_NOPLAINTEXT);
-            if ("true".equals(noPlainText))
-                return new String[]{};
-            else
+            if (props == null) {
                 return new String[]{PLAIN_MECHANISM};
+            }
+            String noPlainText = (String) props.get(Sasl.POLICY_NOPLAINTEXT);
+            if ("true".equals(noPlainText)) {
+                return new String[]{};
+            } else {
+                return new String[]{PLAIN_MECHANISM};
+            }
         }
     }
 }

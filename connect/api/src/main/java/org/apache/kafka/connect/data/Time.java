@@ -55,8 +55,9 @@ public class Time {
      * @return the encoded value
      */
     public static int fromLogical(Schema schema, java.util.Date value) {
-        if (!(LOGICAL_NAME.equals(schema.name())))
+        if (!(LOGICAL_NAME.equals(schema.name()))) {
             throw new DataException("Requested conversion of Time object but the schema does not match.");
+        }
         Calendar calendar = Calendar.getInstance(UTC);
         calendar.setTime(value);
         long unixMillis = calendar.getTimeInMillis();
@@ -67,10 +68,12 @@ public class Time {
     }
 
     public static java.util.Date toLogical(Schema schema, int value) {
-        if (!(LOGICAL_NAME.equals(schema.name())))
+        if (!(LOGICAL_NAME.equals(schema.name()))) {
             throw new DataException("Requested conversion of Date object but the schema does not match.");
-        if (value  < 0 || value > MILLIS_PER_DAY)
+        }
+        if (value  < 0 || value > MILLIS_PER_DAY) {
             throw new DataException("Time values must use number of milliseconds greater than 0 and less than 86400000");
+        }
         return new java.util.Date(value);
     }
 }

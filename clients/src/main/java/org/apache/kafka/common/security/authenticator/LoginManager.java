@@ -143,9 +143,9 @@ public class LoginManager {
      */
     public void release() {
         synchronized (LoginManager.class) {
-            if (refCount == 0)
+            if (refCount == 0) {
                 throw new IllegalStateException("release() called on disposed " + this);
-            else if (refCount == 1) {
+            } else if (refCount == 1) {
                 if (loginMetadata.configInfo instanceof Password) {
                     DYNAMIC_INSTANCES.remove(loginMetadata);
                 } else {
@@ -170,10 +170,12 @@ public class LoginManager {
     /* Should only be used in tests. */
     public static void closeAll() {
         synchronized (LoginManager.class) {
-            for (LoginMetadata<String> key : new ArrayList<>(STATIC_INSTANCES.keySet()))
+            for (LoginMetadata<String> key : new ArrayList<>(STATIC_INSTANCES.keySet())) {
                 STATIC_INSTANCES.remove(key).login.close();
-            for (LoginMetadata<Password> key : new ArrayList<>(DYNAMIC_INSTANCES.keySet()))
+            }
+            for (LoginMetadata<Password> key : new ArrayList<>(DYNAMIC_INSTANCES.keySet())) {
                 DYNAMIC_INSTANCES.remove(key).login.close();
+            }
         }
     }
 
@@ -189,8 +191,9 @@ public class LoginManager {
                     SaslConfigs.SASL_JAAS_CONFIG + " must be configured to override mechanism-specific configs.";
             throw new ConfigException(errorMessage);
         }
-        if (clazz == null)
+        if (clazz == null) {
             clazz = defaultClass;
+        }
         return clazz;
     }
 
@@ -213,8 +216,12 @@ public class LoginManager {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             LoginMetadata<?> loginMetadata = (LoginMetadata<?>) o;
             return Objects.equals(configInfo, loginMetadata.configInfo) &&

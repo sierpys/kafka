@@ -240,12 +240,15 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
         try {
             // if we failed to read to end of log before, we need to make sure the issue was resolved before joining group
             // Joining and immediately leaving for failure to read configs is exceedingly impolite
-            if (!canReadConfigs && !readConfigToEnd(workerSyncTimeoutMs))
+            if (!canReadConfigs && !readConfigToEnd(workerSyncTimeoutMs)) {
                 return; // Safe to return and tick immediately because readConfigToEnd will do the backoff for us
+            }
 
             member.ensureActive();
             // Ensure we're in a good state in our group. If not restart and everything should be setup to rejoin
-            if (!handleRebalanceCompleted()) return;
+            if (!handleRebalanceCompleted()) {
+                return;
+            }
         } catch (WakeupException e) {
             // May be due to a request from another thread, or might be stopping. If the latter, we need to check the
             // flag immediately. If the former, we need to re-run the ensureActive call since we can't handle requests
@@ -314,11 +317,13 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
             }
         }
 
-        if (connectorConfigUpdatesCopy != null)
+        if (connectorConfigUpdatesCopy != null) {
             processConnectorConfigUpdates(connectorConfigUpdatesCopy);
+        }
 
-        if (connectorTargetStateChangesCopy != null)
+        if (connectorTargetStateChangesCopy != null) {
             processTargetStateChanges(connectorTargetStateChangesCopy);
+        }
 
         // Let the group take any actions it needs to
         try {
@@ -335,15 +340,17 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
         // currently assigned to this worker.
         Set<String> localConnectors = assignment == null ? Collections.<String>emptySet() : new HashSet<>(assignment.connectors());
         for (String connectorName : connectorConfigUpdates) {
-            if (!localConnectors.contains(connectorName))
+            if (!localConnectors.contains(connectorName)) {
                 continue;
+            }
             boolean remains = configState.contains(connectorName);
             log.info("Handling connector-only config update by {} connector {}",
                     remains ? "restarting" : "stopping", connectorName);
             worker.stopConnector(connectorName);
             // The update may be a deletion, so verify we actually need to restart the connector
-            if (remains)
+            if (remains) {
                 startConnector(connectorName);
+            }
         }
     }
 
@@ -361,8 +368,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
 
             // additionally, if the worker is running the connector itself, then we need to
             // request reconfiguration to ensure that config changes while paused take effect
-            if (targetState == TargetState.STARTED)
+            if (targetState == TargetState.STARTED) {
                 reconfigureConnectorTasksWithRetry(connector);
+            }
         }
     }
 
@@ -402,16 +410,19 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
         member.wakeup();
         herderExecutor.shutdown();
         try {
-            if (!herderExecutor.awaitTermination(workerTasksShutdownTimeoutMs, TimeUnit.MILLISECONDS))
+            if (!herderExecutor.awaitTermination(workerTasksShutdownTimeoutMs, TimeUnit.MILLISECONDS)) {
                 herderExecutor.shutdownNow();
+            }
 
             forwardRequestExecutor.shutdown();
             startAndStopExecutor.shutdown();
 
-            if (!forwardRequestExecutor.awaitTermination(FORWARD_REQUEST_SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+            if (!forwardRequestExecutor.awaitTermination(FORWARD_REQUEST_SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
                 forwardRequestExecutor.shutdownNow();
-            if (!startAndStopExecutor.awaitTermination(START_AND_STOP_SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+            }
+            if (!startAndStopExecutor.awaitTermination(START_AND_STOP_SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
                 startAndStopExecutor.shutdownNow();
+            }
         } catch (InterruptedException e) {
             // ignore
         }
@@ -427,8 +438,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
                 new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        if (checkRebalanceNeeded(callback))
+                        if (checkRebalanceNeeded(callback)) {
                             return null;
+                        }
 
                         callback.onCompletion(null, configState.connectors());
                         return null;
@@ -446,8 +458,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
                 new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        if (checkRebalanceNeeded(callback))
+                        if (checkRebalanceNeeded(callback)) {
                             return null;
+                        }
 
                         if (!configState.contains(connName)) {
                             callback.onCompletion(new NotFoundException("Connector " + connName + " not found"), null);
@@ -476,10 +489,11 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
         connectorInfo(connName, new Callback<ConnectorInfo>() {
             @Override
             public void onCompletion(Throwable error, ConnectorInfo result) {
-                if (error != null)
+                if (error != null) {
                     callback.onCompletion(error, null);
-                else
+                } else {
                     callback.onCompletion(null, result.config());
+                }
             }
         });
     }
@@ -599,8 +613,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
                 new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        if (checkRebalanceNeeded(callback))
+                        if (checkRebalanceNeeded(callback)) {
                             return null;
+                        }
 
                         if (!configState.contains(connName)) {
                             callback.onCompletion(new NotFoundException("Connector " + connName + " not found"), null);
@@ -627,11 +642,11 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
                 new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        if (!isLeader())
+                        if (!isLeader()) {
                             callback.onCompletion(new NotLeaderException("Only the leader may write task configurations.", leaderUrl()), null);
-                        else if (!configState.contains(connName))
+                        } else if (!configState.contains(connName)) {
                             callback.onCompletion(new NotFoundException("Connector " + connName + " not found"), null);
-                        else {
+                        } else {
                             configBackingStore.putTaskConfigs(connName, configs);
                             callback.onCompletion(null, null);
                         }
@@ -659,8 +674,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
         return addRequest(delayMs, new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                if (checkRebalanceNeeded(callback))
+                if (checkRebalanceNeeded(callback)) {
                     return null;
+                }
 
                 if (!configState.connectors().contains(connName)) {
                     callback.onCompletion(new NotFoundException("Unknown connector: " + connName), null);
@@ -670,10 +686,11 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
                 if (assignment.connectors().contains(connName)) {
                     try {
                         worker.stopConnector(connName);
-                        if (startConnector(connName))
+                        if (startConnector(connName)) {
                             callback.onCompletion(null, null);
-                        else
+                        } else {
                             callback.onCompletion(new ConnectException("Failed to start connector: " + connName), null);
+                        }
                     } catch (Throwable t) {
                         callback.onCompletion(t, null);
                     }
@@ -692,8 +709,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
         addRequest(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                if (checkRebalanceNeeded(callback))
+                if (checkRebalanceNeeded(callback)) {
                     return null;
+                }
 
                 if (!configState.connectors().contains(id.connector())) {
                     callback.onCompletion(new NotFoundException("Unknown connector: " + id.connector()), null);
@@ -708,10 +726,11 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
                 if (assignment.tasks().contains(id)) {
                     try {
                         worker.stopAndAwaitTask(id);
-                        if (startTask(id))
+                        if (startTask(id)) {
                             callback.onCompletion(null, null);
-                        else
+                        } else {
                             callback.onCompletion(new ConnectException("Failed to start task: " + id), null);
+                        }
                     } catch (Throwable t) {
                         callback.onCompletion(t, null);
                     }
@@ -739,8 +758,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
      * Get the URL for the leader's REST interface, or null if we do not have the leader's URL yet.
      */
     private String leaderUrl() {
-        if (assignment == null)
+        if (assignment == null) {
             return null;
+        }
         return assignment.leaderUrl();
     }
 
@@ -751,8 +771,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
      * @return false if we couldn't finish
      */
     private boolean handleRebalanceCompleted() {
-        if (this.rebalanceResolved)
+        if (this.rebalanceResolved) {
             return true;
+        }
 
         // We need to handle a variety of cases after a rebalance:
         // 1. Assignment failed
@@ -918,8 +939,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
         // Immediately request configuration since this could be a brand new connector. However, also only update those
         // task configs if they are actually different from the existing ones to avoid unnecessary updates when this is
         // just restoring an existing connector.
-        if (started && initialState == TargetState.STARTED)
+        if (started && initialState == TargetState.STARTED) {
             reconfigureConnectorTasksWithRetry(connectorName);
+        }
 
         return started;
     }
@@ -1063,8 +1085,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
     DistributedHerderRequest addRequest(long delayMs, Callable<Void> action, Callback<Void> callback) {
         DistributedHerderRequest req = new DistributedHerderRequest(time.milliseconds() + delayMs, requestSeqNum.incrementAndGet(), action, callback);
         requests.add(req);
-        if (peekWithoutException() == req)
+        if (peekWithoutException() == req) {
             member.wakeup();
+        }
         return req;
     }
 
@@ -1085,8 +1108,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
 
             synchronized (DistributedHerder.this) {
                 // rebalance after connector removal to ensure that existing tasks are balanced among workers
-                if (configState.contains(connector))
+                if (configState.contains(connector)) {
                     needsReconfigRebalance = true;
+                }
                 connectorConfigUpdates.add(connector);
             }
             member.wakeup();
@@ -1100,8 +1124,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
             // to be bounced. However, this callback may also indicate a connector *addition*, which does require
             // a rebalance, so we need to be careful about what operation we request.
             synchronized (DistributedHerder.this) {
-                if (!configState.contains(connector))
+                if (!configState.contains(connector)) {
                     needsReconfigRebalance = true;
+                }
                 connectorConfigUpdates.add(connector);
             }
             member.wakeup();
@@ -1166,9 +1191,12 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof DistributedHerderRequest))
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof DistributedHerderRequest)) {
                 return false;
+            }
             DistributedHerderRequest other = (DistributedHerderRequest) o;
             return compareTo(other) == 0;
         }
@@ -1183,8 +1211,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
         return new Callback<Void>() {
             @Override
             public void onCompletion(Throwable error, Void result) {
-                if (error != null)
+                if (error != null) {
                     callback.onCompletion(error, null);
+                }
             }
         };
     }
@@ -1224,8 +1253,9 @@ public class DistributedHerder extends AbstractHerder implements Runnable {
             // Delete the statuses of all connectors removed prior to the start of this rebalance. This has to
             // be done after the rebalance completes to avoid race conditions as the previous generation attempts
             // to change the state to UNASSIGNED after tasks have been stopped.
-            if (isLeader())
+            if (isLeader()) {
                 updateDeletedConnectorStatus();
+            }
 
             // We *must* interrupt any poll() call since this could occur when the poll starts, and we might then
             // sleep in the poll() for a long time. Forcing a wakeup ensures we'll get to process this event in the

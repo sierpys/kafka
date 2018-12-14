@@ -224,8 +224,9 @@ public class DeleteAclsResponse extends AbstractResponse {
     @Override
     public Map<Errors, Integer> errorCounts() {
         Map<Errors, Integer> errorCounts = new HashMap<>();
-        for (AclFilterResponse response : responses)
+        for (AclFilterResponse response : responses) {
             updateErrorCounts(errorCounts, response.error.error());
+        }
         return errorCounts;
     }
 
@@ -233,6 +234,7 @@ public class DeleteAclsResponse extends AbstractResponse {
         return new DeleteAclsResponse(ApiKeys.DELETE_ACLS.responseSchema(version).read(buffer));
     }
 
+    @Override
     public String toString() {
         return "(responses=" + Utils.join(responses, ",") + ")";
     }

@@ -50,12 +50,13 @@ public class SaslServerCallbackHandler implements AuthenticateCallbackHandler {
     @Override
     public void handle(Callback[] callbacks) throws UnsupportedCallbackException {
         for (Callback callback : callbacks) {
-            if (callback instanceof RealmCallback)
+            if (callback instanceof RealmCallback) {
                 handleRealmCallback((RealmCallback) callback);
-            else if (callback instanceof AuthorizeCallback && mechanism.equals(SaslConfigs.GSSAPI_MECHANISM))
+            } else if (callback instanceof AuthorizeCallback && mechanism.equals(SaslConfigs.GSSAPI_MECHANISM)) {
                 handleAuthorizeCallback((AuthorizeCallback) callback);
-            else
+            } else {
                 throw new UnsupportedCallbackException(callback);
+            }
         }
     }
 

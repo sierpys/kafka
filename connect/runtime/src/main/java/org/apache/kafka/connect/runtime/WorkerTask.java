@@ -161,12 +161,15 @@ abstract class WorkerTask implements Runnable {
     private void doRun() throws InterruptedException {
         try {
             synchronized (this) {
-                if (stopping)
+                if (stopping) {
                     return;
+                }
 
                 if (targetState == TargetState.PAUSED) {
                     onPause();
-                    if (!awaitUnpause()) return;
+                    if (!awaitUnpause()) {
+                        return;
+                    }
                 }
 
                 statusListener.onStartup(id);
@@ -188,8 +191,9 @@ abstract class WorkerTask implements Runnable {
 
             // if we were cancelled, skip the status update since the task may have already been
             // started somewhere else
-            if (!cancelled)
+            if (!cancelled) {
                 statusListener.onShutdown(id);
+            }
         }
     }
 
@@ -199,8 +203,9 @@ abstract class WorkerTask implements Runnable {
 
             // if we were cancelled, skip the status update since the task may have already been
             // started somewhere else
-            if (!cancelled)
+            if (!cancelled) {
                 statusListener.onFailure(id, t);
+            }
         }
     }
 
@@ -221,8 +226,9 @@ abstract class WorkerTask implements Runnable {
         } catch (Throwable t) {
             onFailure(t);
 
-            if (t instanceof Error)
+            if (t instanceof Error) {
                 throw (Error) t;
+            }
         } finally {
             try {
                 Plugins.compareAndSwapLoaders(savedLoader);
@@ -250,8 +256,9 @@ abstract class WorkerTask implements Runnable {
     protected boolean awaitUnpause() throws InterruptedException {
         synchronized (this) {
             while (targetState == TargetState.PAUSED) {
-                if (stopping)
+                if (stopping) {
                     return false;
+                }
                 this.wait();
             }
             return true;
@@ -261,8 +268,9 @@ abstract class WorkerTask implements Runnable {
     public void transitionTo(TargetState state) {
         synchronized (this) {
             // ignore the state change if we are stopping
-            if (stopping)
+            if (stopping) {
                 return;
+            }
 
             this.targetState = state;
             this.notifyAll();

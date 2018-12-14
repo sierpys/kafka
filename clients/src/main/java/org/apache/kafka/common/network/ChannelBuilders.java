@@ -57,10 +57,12 @@ public class ChannelBuilders {
             boolean saslHandshakeRequestEnable) {
 
         if (securityProtocol == SecurityProtocol.SASL_PLAINTEXT || securityProtocol == SecurityProtocol.SASL_SSL) {
-            if (contextType == null)
+            if (contextType == null) {
                 throw new IllegalArgumentException("`contextType` must be non-null if `securityProtocol` is `" + securityProtocol + "`");
-            if (clientSaslMechanism == null)
+            }
+            if (clientSaslMechanism == null) {
                 throw new IllegalArgumentException("`clientSaslMechanism` must be non-null in client mode if `securityProtocol` is `" + securityProtocol + "`");
+            }
         }
         return create(securityProtocol, Mode.CLIENT, contextType, config, listenerName, false, clientSaslMechanism,
                 saslHandshakeRequestEnable, null, null);
@@ -94,10 +96,11 @@ public class ChannelBuilders {
                                          CredentialCache credentialCache,
                                          DelegationTokenCache tokenCache) {
         Map<String, ?> configs;
-        if (listenerName == null)
+        if (listenerName == null) {
             configs = config.values();
-        else
+        } else {
             configs = config.valuesWithPrefixOverride(listenerName.configPrefix());
+        }
 
         ChannelBuilder channelBuilder;
         switch (securityProtocol) {
@@ -112,8 +115,9 @@ public class ChannelBuilders {
                 if (mode == Mode.SERVER) {
                     List<String> enabledMechanisms = (List<String>) configs.get(BrokerSecurityConfigs.SASL_ENABLED_MECHANISMS_CONFIG);
                     jaasContexts = new HashMap<>(enabledMechanisms.size());
-                    for (String mechanism : enabledMechanisms)
+                    for (String mechanism : enabledMechanisms) {
                         jaasContexts.put(mechanism, JaasContext.loadServerContext(listenerName, mechanism, configs));
+                    }
                 } else {
                     // Use server context for inter-broker client connections and client context for other clients
                     JaasContext jaasContext = contextType == JaasContext.Type.CLIENT ? JaasContext.loadClientContext(configs) :
@@ -142,8 +146,9 @@ public class ChannelBuilders {
     }
 
     private static void requireNonNullMode(Mode mode, SecurityProtocol securityProtocol) {
-        if (mode == null)
+        if (mode == null) {
             throw new IllegalArgumentException("`mode` must be non-null if `securityProtocol` is `" + securityProtocol + "`");
+        }
     }
 
     // Use FQN to avoid deprecated import warnings
@@ -151,10 +156,11 @@ public class ChannelBuilders {
     private static org.apache.kafka.common.security.auth.PrincipalBuilder createPrincipalBuilder(
             Class<?> principalBuilderClass, Map<String, ?> configs) {
         org.apache.kafka.common.security.auth.PrincipalBuilder principalBuilder;
-        if (principalBuilderClass == null)
+        if (principalBuilderClass == null) {
             principalBuilder = new org.apache.kafka.common.security.auth.DefaultPrincipalBuilder();
-        else
+        } else {
             principalBuilder = (org.apache.kafka.common.security.auth.PrincipalBuilder) Utils.newInstance(principalBuilderClass);
+        }
         principalBuilder.configure(configs);
         return principalBuilder;
     }
@@ -182,8 +188,9 @@ public class ChannelBuilders {
                     KafkaPrincipalBuilder.class.getName());
         }
 
-        if (builder instanceof Configurable)
+        if (builder instanceof Configurable) {
             ((Configurable) builder).configure(configs);
+        }
 
         return builder;
     }

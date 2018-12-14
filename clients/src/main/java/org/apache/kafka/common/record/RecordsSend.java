@@ -56,14 +56,16 @@ public abstract class RecordsSend<T extends BaseRecords> implements Send {
 
         if (remaining > 0) {
             written = writeTo(channel, size() - remaining, remaining);
-            if (written < 0)
+            if (written < 0) {
                 throw new EOFException("Wrote negative bytes to channel. This shouldn't happen.");
+            }
             remaining -= written;
         }
 
         pending = TransportLayers.hasPendingWrites(channel);
-        if (remaining <= 0 && pending)
+        if (remaining <= 0 && pending) {
             channel.write(EMPTY_BYTE_BUFFER);
+        }
 
         return written;
     }

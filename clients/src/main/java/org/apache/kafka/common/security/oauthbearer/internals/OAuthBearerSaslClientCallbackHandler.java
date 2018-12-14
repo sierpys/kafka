@@ -58,20 +58,23 @@ public class OAuthBearerSaslClientCallbackHandler implements AuthenticateCallbac
 
     @Override
     public void configure(Map<String, ?> configs, String saslMechanism, List<AppConfigurationEntry> jaasConfigEntries) {
-        if (!OAuthBearerLoginModule.OAUTHBEARER_MECHANISM.equals(saslMechanism))
+        if (!OAuthBearerLoginModule.OAUTHBEARER_MECHANISM.equals(saslMechanism)) {
             throw new IllegalArgumentException(String.format("Unexpected SASL mechanism: %s", saslMechanism));
+        }
         configured = true;
     }
 
     @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
-        if (!configured())
+        if (!configured()) {
             throw new IllegalStateException("Callback handler not configured");
+        }
         for (Callback callback : callbacks) {
-            if (callback instanceof OAuthBearerTokenCallback)
+            if (callback instanceof OAuthBearerTokenCallback) {
                 handleCallback((OAuthBearerTokenCallback) callback);
-            else
+            } else {
                 throw new UnsupportedCallbackException(callback);
+            }
         }
     }
 
@@ -81,16 +84,18 @@ public class OAuthBearerSaslClientCallbackHandler implements AuthenticateCallbac
     }
 
     private void handleCallback(OAuthBearerTokenCallback callback) throws IOException {
-        if (callback.token() != null)
+        if (callback.token() != null) {
             throw new IllegalArgumentException("Callback had a token already");
+        }
         Subject subject = Subject.getSubject(AccessController.getContext());
         Set<OAuthBearerToken> privateCredentials = subject != null
                 ? subject.getPrivateCredentials(OAuthBearerToken.class)
                 : Collections.<OAuthBearerToken>emptySet();
-        if (privateCredentials.size() != 1)
+        if (privateCredentials.size() != 1) {
             throw new IOException(
                     String.format("Unable to find OAuth Bearer token in Subject's private credentials (size=%d)",
                             privateCredentials.size()));
+        }
         callback.token(privateCredentials.iterator().next());
     }
 }

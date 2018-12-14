@@ -36,8 +36,9 @@ public class KerberosClientCallbackHandler implements AuthenticateCallbackHandle
 
     @Override
     public void configure(Map<String, ?> configs, String saslMechanism, List<AppConfigurationEntry> jaasConfigEntries) {
-        if (!saslMechanism.equals(SaslConfigs.GSSAPI_MECHANISM))
+        if (!saslMechanism.equals(SaslConfigs.GSSAPI_MECHANISM)) {
             throw new IllegalStateException("Kerberos callback handler should only be used with GSSAPI");
+        }
     }
 
     @Override
@@ -62,8 +63,9 @@ public class KerberosClientCallbackHandler implements AuthenticateCallbackHandle
                 String authId = ac.getAuthenticationID();
                 String authzId = ac.getAuthorizationID();
                 ac.setAuthorized(authId.equals(authzId));
-                if (ac.isAuthorized())
+                if (ac.isAuthorized()) {
                     ac.setAuthorizedID(authzId);
+                }
             }  else {
                 throw new UnsupportedCallbackException(callback, "Unrecognized SASL ClientCallback");
             }

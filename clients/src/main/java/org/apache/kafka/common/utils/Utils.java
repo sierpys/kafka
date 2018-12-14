@@ -132,10 +132,11 @@ public final class Utils {
      * @return The UTF8 string
      */
     public static String utf8(ByteBuffer buffer, int offset, int length) {
-        if (buffer.hasArray())
+        if (buffer.hasArray()) {
             return new String(buffer.array(), buffer.arrayOffset() + buffer.position() + offset, length, StandardCharsets.UTF_8);
-        else
+        } else {
             return utf8(toArray(buffer, offset, length));
+        }
     }
 
     /**
@@ -165,8 +166,9 @@ public final class Utils {
     public static long min(long first, long... rest) {
         long min = first;
         for (long r : rest) {
-            if (r < min)
+            if (r < min) {
                 min = r;
+            }
         }
         return min;
     }
@@ -180,8 +182,9 @@ public final class Utils {
     public static long max(long first, long... rest) {
         long max = first;
         for (long r : rest) {
-            if (r > max)
+            if (r > max) {
                 max = r;
+            }
         }
         return max;
     }
@@ -277,10 +280,11 @@ public final class Utils {
      * @throws NullPointerException if t is null.
      */
     public static <T> T notNull(T t) {
-        if (t == null)
+        if (t == null) {
             throw new NullPointerException();
-        else
+        } else {
             return t;
+        }
     }
 
     /**
@@ -300,8 +304,9 @@ public final class Utils {
      * Instantiate the class
      */
     public static <T> T newInstance(Class<T> c) {
-        if (c == null)
+        if (c == null) {
             throw new KafkaException("class cannot be null");
+        }
         try {
             return c.getDeclaredConstructor().newInstance();
         } catch (NoSuchMethodException e) {
@@ -492,8 +497,9 @@ public final class Utils {
         Iterator<T> iter = list.iterator();
         while (iter.hasNext()) {
             sb.append(iter.next());
-            if (iter.hasNext())
+            if (iter.hasNext()) {
                 sb.append(separator);
+            }
         }
         return sb.toString();
     }
@@ -536,8 +542,9 @@ public final class Utils {
      */
     public static Map<String, String> propsToStringMap(Properties props) {
         Map<String, String> result = new HashMap<>();
-        for (Map.Entry<Object, Object> entry : props.entrySet())
+        for (Map.Entry<Object, Object> entry : props.entrySet()) {
             result.put(entry.getKey().toString(), entry.getValue().toString());
+        }
         return result;
     }
 
@@ -588,7 +595,9 @@ public final class Utils {
      * @throws IOException
      */
     public static String readFileAsString(String path, Charset charset) throws IOException {
-        if (charset == null) charset = Charset.defaultCharset();
+        if (charset == null) {
+            charset = Charset.defaultCharset();
+        }
 
         try (FileInputStream stream = new FileInputStream(new File(path))) {
             FileChannel fc = stream.getChannel();
@@ -705,14 +714,16 @@ public final class Utils {
      * @param file The root file at which to begin deleting
      */
     public static void delete(final File file) throws IOException {
-        if (file == null)
+        if (file == null) {
             return;
+        }
         Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFileFailed(Path path, IOException exc) throws IOException {
                 // If the root path did not exist, ignore the error; otherwise throw it.
-                if (exc instanceof NoSuchFileException && path.toFile().equals(file))
+                if (exc instanceof NoSuchFileException && path.toFile().equals(file)) {
                     return FileVisitResult.TERMINATE;
+                }
                 throw exc;
             }
 
@@ -754,10 +765,11 @@ public final class Utils {
      */
     public static ClassLoader getContextOrKafkaClassLoader() {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        if (cl == null)
+        if (cl == null) {
             return getKafkaClassLoader();
-        else
+        } else {
             return cl;
+        }
     }
 
     /**
@@ -790,17 +802,20 @@ public final class Utils {
         IOException exception = null;
         for (Closeable closeable : closeables) {
             try {
-                if (closeable != null)
+                if (closeable != null) {
                     closeable.close();
+                }
             } catch (IOException e) {
-                if (exception != null)
+                if (exception != null) {
                     exception.addSuppressed(e);
-                else
+                } else {
                     exception = e;
+                }
             }
         }
-        if (exception != null)
+        if (exception != null) {
             throw exception;
+        }
     }
 
     /**
@@ -919,24 +934,27 @@ public final class Utils {
      * @throws IOException If an I/O error occurs
      */
     public static final void readFully(InputStream inputStream, ByteBuffer destinationBuffer) throws IOException {
-        if (!destinationBuffer.hasArray())
+        if (!destinationBuffer.hasArray()) {
             throw new IllegalArgumentException("destinationBuffer must be backed by an array");
+        }
         int initialOffset = destinationBuffer.arrayOffset() + destinationBuffer.position();
         byte[] array = destinationBuffer.array();
         int length = destinationBuffer.remaining();
         int totalBytesRead = 0;
         do {
             int bytesRead = inputStream.read(array, initialOffset + totalBytesRead, length - totalBytesRead);
-            if (bytesRead == -1)
+            if (bytesRead == -1) {
                 break;
+            }
             totalBytesRead += bytesRead;
         } while (length > totalBytesRead);
         destinationBuffer.position(destinationBuffer.position() + totalBytesRead);
     }
 
     public static void writeFully(FileChannel channel, ByteBuffer sourceBuffer) throws IOException {
-        while (sourceBuffer.hasRemaining())
+        while (sourceBuffer.hasRemaining()) {
             channel.write(sourceBuffer);
+        }
     }
 
     /**
@@ -952,15 +970,17 @@ public final class Utils {
             out.write(buffer.array(), buffer.position() + buffer.arrayOffset(), length);
         } else {
             int pos = buffer.position();
-            for (int i = pos; i < length + pos; i++)
+            for (int i = pos; i < length + pos; i++) {
                 out.writeByte(buffer.get(i));
+            }
         }
     }
 
     public static <T> List<T> toList(Iterator<T> iterator) {
         List<T> res = new ArrayList<>();
-        while (iterator.hasNext())
+        while (iterator.hasNext()) {
             res.add(iterator.next());
+        }
         return res;
     }
 

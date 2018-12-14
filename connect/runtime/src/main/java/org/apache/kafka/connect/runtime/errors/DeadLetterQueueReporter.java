@@ -115,6 +115,7 @@ public class DeadLetterQueueReporter implements ErrorReporter {
      *
      * @param context processing context containing the raw record at {@link ProcessingContext#consumerRecord()}.
      */
+    @Override
     public void report(ProcessingContext context) {
         final String dlqTopicName = connConfig.dlqTopicName();
         if (dlqTopicName.isEmpty()) {

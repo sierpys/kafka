@@ -32,15 +32,20 @@ public class Stamped<V> implements Comparable {
     public int compareTo(Object other) {
         long otherTimestamp = ((Stamped<?>) other).timestamp;
 
-        if (timestamp < otherTimestamp) return -1;
-        else if (timestamp > otherTimestamp) return 1;
+        if (timestamp < otherTimestamp) {
+            return -1;
+        } else if (timestamp > otherTimestamp) {
+            return 1;
+        }
         return 0;
     }
 
     @Override
     public boolean equals(Object other) {
 
-        if (other == null || getClass() != other.getClass()) return false;
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
 
         long otherTimestamp = ((Stamped<?>) other).timestamp;
         return Long.compare(timestamp, otherTimestamp) == 0;

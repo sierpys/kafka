@@ -165,15 +165,17 @@ public final class WorkerCoordinator extends AbstractCoordinator implements Clos
         log.debug("Performing task assignment");
 
         Map<String, ConnectProtocol.WorkerState> memberConfigs = new HashMap<>();
-        for (Map.Entry<String, ByteBuffer> entry : allMemberMetadata.entrySet())
+        for (Map.Entry<String, ByteBuffer> entry : allMemberMetadata.entrySet()) {
             memberConfigs.put(entry.getKey(), ConnectProtocol.deserializeMetadata(entry.getValue()));
+        }
 
         long maxOffset = findMaxMemberConfigOffset(memberConfigs);
         Long leaderOffset = ensureLeaderConfig(maxOffset);
-        if (leaderOffset == null)
+        if (leaderOffset == null) {
             return fillAssignmentsAndSerialize(memberConfigs.keySet(), ConnectProtocol.Assignment.CONFIG_MISMATCH,
                     leaderId, memberConfigs.get(leaderId).url(), maxOffset,
                     new HashMap<String, List<String>>(), new HashMap<String, List<ConnectorTaskId>>());
+        }
         return performTaskAssignment(leaderId, leaderOffset, memberConfigs);
     }
 
@@ -184,10 +186,11 @@ public final class WorkerCoordinator extends AbstractCoordinator implements Clos
         Long maxOffset = null;
         for (Map.Entry<String, ConnectProtocol.WorkerState> stateEntry : memberConfigs.entrySet()) {
             long memberRootOffset = stateEntry.getValue().offset();
-            if (maxOffset == null)
+            if (maxOffset == null) {
                 maxOffset = memberRootOffset;
-            else
+            } else {
                 maxOffset = Math.max(maxOffset, memberRootOffset);
+            }
         }
 
         log.debug("Max config offset root: {}, local snapshot config offsets root: {}",
@@ -266,11 +269,13 @@ public final class WorkerCoordinator extends AbstractCoordinator implements Clos
         Map<String, ByteBuffer> groupAssignment = new HashMap<>();
         for (String member : members) {
             List<String> connectors = connectorAssignments.get(member);
-            if (connectors == null)
+            if (connectors == null) {
                 connectors = Collections.emptyList();
+            }
             List<ConnectorTaskId> tasks = taskAssignments.get(member);
-            if (tasks == null)
+            if (tasks == null) {
                 tasks = Collections.emptyList();
+            }
             ConnectProtocol.Assignment assignment = new ConnectProtocol.Assignment(error, leaderId, leaderUrl, maxOffset, connectors, tasks);
             log.debug("Assignment: {} -> {}", member, assignment);
             groupAssignment.put(member, ConnectProtocol.serializeAssignment(assignment));
@@ -283,8 +288,9 @@ public final class WorkerCoordinator extends AbstractCoordinator implements Clos
     protected void onJoinPrepare(int generation, String memberId) {
         this.leaderState = null;
         log.debug("Revoking previous assignment {}", assignmentSnapshot);
-        if (assignmentSnapshot != null && !assignmentSnapshot.failed())
+        if (assignmentSnapshot != null && !assignmentSnapshot.failed()) {
             listener.onRevoked(assignmentSnapshot.leader(), assignmentSnapshot.connectors(), assignmentSnapshot.tasks());
+        }
     }
 
     @Override
@@ -294,8 +300,9 @@ public final class WorkerCoordinator extends AbstractCoordinator implements Clos
 
     public String memberId() {
         Generation generation = generation();
-        if (generation != null)
+        if (generation != null) {
             return generation.memberId;
+        }
         return JoinGroupRequest.UNKNOWN_MEMBER_ID;
     }
 
@@ -304,14 +311,16 @@ public final class WorkerCoordinator extends AbstractCoordinator implements Clos
     }
 
     public String ownerUrl(String connector) {
-        if (rejoinNeededOrPending() || !isLeader())
+        if (rejoinNeededOrPending() || !isLeader()) {
             return null;
+        }
         return leaderState.ownerUrl(connector);
     }
 
     public String ownerUrl(ConnectorTaskId task) {
-        if (rejoinNeededOrPending() || !isLeader())
+        if (rejoinNeededOrPending() || !isLeader()) {
             return null;
+        }
         return leaderState.ownerUrl(task);
     }
 
@@ -354,8 +363,9 @@ public final class WorkerCoordinator extends AbstractCoordinator implements Clos
         Map<V, K> inverted = new HashMap<>();
         for (Map.Entry<K, List<V>> assignmentEntry : assignment.entrySet()) {
             K key = assignmentEntry.getKey();
-            for (V value : assignmentEntry.getValue())
+            for (V value : assignmentEntry.getValue()) {
                 inverted.put(value, key);
+            }
         }
         return inverted;
     }
@@ -375,15 +385,17 @@ public final class WorkerCoordinator extends AbstractCoordinator implements Clos
 
         private String ownerUrl(ConnectorTaskId id) {
             String ownerId = taskOwners.get(id);
-            if (ownerId == null)
+            if (ownerId == null) {
                 return null;
+            }
             return allMembers.get(ownerId).url();
         }
 
         private String ownerUrl(String connector) {
             String ownerId = connectorOwners.get(connector);
-            if (ownerId == null)
+            if (ownerId == null) {
                 return null;
+            }
             return allMembers.get(ownerId).url();
         }
 

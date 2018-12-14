@@ -304,21 +304,24 @@ public class UpdateMetadataRequest extends AbstractRequest {
 
             Object[] isrArray = partitionStateData.getArray(ISR_KEY_NAME);
             List<Integer> isr = new ArrayList<>(isrArray.length);
-            for (Object r : isrArray)
+            for (Object r : isrArray) {
                 isr.add((Integer) r);
+            }
 
             int zkVersion = partitionStateData.getInt(ZK_VERSION_KEY_NAME);
 
             Object[] replicasArray = partitionStateData.getArray(REPLICAS_KEY_NAME);
             List<Integer> replicas = new ArrayList<>(replicasArray.length);
-            for (Object r : replicasArray)
+            for (Object r : replicasArray) {
                 replicas.add((Integer) r);
+            }
 
             List<Integer> offlineReplicas = new ArrayList<>();
             if (partitionStateData.hasField(OFFLINE_REPLICAS_KEY_NAME)) {
                 Object[] offlineReplicasArray = partitionStateData.getArray(OFFLINE_REPLICAS_KEY_NAME);
-                for (Object r : offlineReplicasArray)
+                for (Object r : offlineReplicasArray) {
                     offlineReplicas.add((Integer) r);
+                }
             }
 
             PartitionState partitionState =
@@ -350,9 +353,11 @@ public class UpdateMetadataRequest extends AbstractRequest {
                     SecurityProtocol securityProtocol = SecurityProtocol.forId(protocolTypeId);
                     String listenerName;
                     if (endPointData.hasField(LISTENER_NAME_KEY_NAME)) // V3
+                    {
                         listenerName = endPointData.getString(LISTENER_NAME_KEY_NAME);
-                    else
+                    } else {
                         listenerName = securityProtocol.name;
+                    }
                     endPoints.add(new EndPoint(host, port, securityProtocol, new ListenerName(listenerName)));
                 }
                 String rack = null;
@@ -388,8 +393,9 @@ public class UpdateMetadataRequest extends AbstractRequest {
             partitionStateData.set(ISR_KEY_NAME, partitionState.basePartitionState.isr.toArray());
             partitionStateData.set(ZK_VERSION_KEY_NAME, partitionState.basePartitionState.zkVersion);
             partitionStateData.set(REPLICAS_KEY_NAME, partitionState.basePartitionState.replicas.toArray());
-            if (partitionStateData.hasField(OFFLINE_REPLICAS_KEY_NAME))
-              partitionStateData.set(OFFLINE_REPLICAS_KEY_NAME, partitionState.offlineReplicas.toArray());
+            if (partitionStateData.hasField(OFFLINE_REPLICAS_KEY_NAME)) {
+                partitionStateData.set(OFFLINE_REPLICAS_KEY_NAME, partitionState.offlineReplicas.toArray());
+            }
             partitionStatesData.add(partitionStateData);
         }
         struct.set(PARTITION_STATES_KEY_NAME, partitionStatesData.toArray());
@@ -410,8 +416,9 @@ public class UpdateMetadataRequest extends AbstractRequest {
                     endPointData.set(PORT_KEY_NAME, endPoint.port);
                     endPointData.set(HOST_KEY_NAME, endPoint.host);
                     endPointData.set(SECURITY_PROTOCOL_TYPE_KEY_NAME, endPoint.securityProtocol.id);
-                    if (version >= 3)
+                    if (version >= 3) {
                         endPointData.set(LISTENER_NAME_KEY_NAME, endPoint.listenerName.value());
+                    }
                     endPointsData.add(endPointData);
 
                 }
@@ -431,11 +438,12 @@ public class UpdateMetadataRequest extends AbstractRequest {
     @Override
     public AbstractResponse getErrorResponse(int throttleTimeMs, Throwable e) {
         short versionId = version();
-        if (versionId <= 4)
+        if (versionId <= 4) {
             return new UpdateMetadataResponse(Errors.forException(e));
-        else
+        } else {
             throw new IllegalArgumentException(String.format("Version %d is not valid. Valid versions for %s are 0 to %d",
                 versionId, this.getClass().getSimpleName(), ApiKeys.UPDATE_METADATA.latestVersion()));
+        }
     }
 
     public int controllerId() {

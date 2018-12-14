@@ -119,7 +119,9 @@ public class MockProcessorContext implements ProcessorContext, RecordCollector.S
         private final KeyValue keyValue;
 
         private CapturedForward(final To to, final KeyValue keyValue) {
-            if (keyValue == null) throw new IllegalArgumentException();
+            if (keyValue == null) {
+                throw new IllegalArgumentException();
+            }
 
             this.childName = to.childName;
             this.timestamp = to.timestamp;

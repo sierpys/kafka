@@ -49,6 +49,7 @@ public class KTableRepartitionMap<K, V, K1, V1> implements KTableProcessorSuppli
 
         return new KTableValueGetterSupplier<K, KeyValue<K1, V1>>() {
 
+            @Override
             public KTableValueGetter<K, KeyValue<K1, V1>> get() {
                 return new KTableMapValueGetter(parentValueGetterSupplier.get());
             }

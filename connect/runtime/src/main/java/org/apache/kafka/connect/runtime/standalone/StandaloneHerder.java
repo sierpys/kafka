@@ -95,8 +95,9 @@ public class StandaloneHerder extends AbstractHerder {
         log.info("Herder stopping");
         requestExecutorService.shutdown();
         try {
-            if (!requestExecutorService.awaitTermination(30, TimeUnit.SECONDS))
+            if (!requestExecutorService.awaitTermination(30, TimeUnit.SECONDS)) {
                 requestExecutorService.shutdownNow();
+            }
         } catch (InterruptedException e) {
             // ignore
         }
@@ -133,8 +134,9 @@ public class StandaloneHerder extends AbstractHerder {
     }
 
     private ConnectorInfo createConnectorInfo(String connector) {
-        if (!configState.contains(connector))
+        if (!configState.contains(connector)) {
             return null;
+        }
         Map<String, String> config = configState.connectorConfig(connector);
         return new ConnectorInfo(connector, config, configState.tasks(connector),
             connectorTypeForClass(config.get(ConnectorConfig.CONNECTOR_CLASS_CONFIG)));
@@ -230,8 +232,9 @@ public class StandaloneHerder extends AbstractHerder {
         }
 
         List<TaskInfo> result = new ArrayList<>();
-        for (ConnectorTaskId taskId : configState.tasks(connName))
+        for (ConnectorTaskId taskId : configState.tasks(connName)) {
             result.add(new TaskInfo(taskId, configState.taskConfig(taskId)));
+        }
         callback.onCompletion(null, result);
     }
 
@@ -242,20 +245,23 @@ public class StandaloneHerder extends AbstractHerder {
 
     @Override
     public synchronized void restartTask(ConnectorTaskId taskId, Callback<Void> cb) {
-        if (!configState.contains(taskId.connector()))
+        if (!configState.contains(taskId.connector())) {
             cb.onCompletion(new NotFoundException("Connector " + taskId.connector() + " not found", null), null);
+        }
 
         Map<String, String> taskConfigProps = configState.taskConfig(taskId);
-        if (taskConfigProps == null)
+        if (taskConfigProps == null) {
             cb.onCompletion(new NotFoundException("Task " + taskId + " not found", null), null);
+        }
         Map<String, String> connConfigProps = configState.connectorConfig(taskId.connector());
 
         TargetState targetState = configState.targetState(taskId.connector());
         worker.stopAndAwaitTask(taskId);
-        if (worker.startTask(taskId, configState, connConfigProps, taskConfigProps, this, targetState))
+        if (worker.startTask(taskId, configState, connConfigProps, taskConfigProps, this, targetState)) {
             cb.onCompletion(null, null);
-        else
+        } else {
             cb.onCompletion(new ConnectException("Failed to start task: " + taskId), null);
+        }
     }
 
     @Override
@@ -267,15 +273,17 @@ public class StandaloneHerder extends AbstractHerder {
 
     @Override
     public synchronized void restartConnector(String connName, Callback<Void> cb) {
-        if (!configState.contains(connName))
+        if (!configState.contains(connName)) {
             cb.onCompletion(new NotFoundException("Connector " + connName + " not found", null), null);
+        }
 
         Map<String, String> config = configState.connectorConfig(connName);
         worker.stopConnector(connName);
-        if (startConnector(config))
+        if (startConnector(config)) {
             cb.onCompletion(null, null);
-        else
+        } else {
             cb.onCompletion(new ConnectException("Failed to start connector: " + connName), null);
+        }
     }
 
     @Override
@@ -379,8 +387,9 @@ public class StandaloneHerder extends AbstractHerder {
                 configState = configBackingStore.snapshot();
                 TargetState targetState = configState.targetState(connector);
                 worker.setTargetState(connector, targetState);
-                if (targetState == TargetState.STARTED)
+                if (targetState == TargetState.STARTED) {
                     updateConnectorTasks(connector);
+                }
             }
         }
     }
@@ -401,9 +410,12 @@ public class StandaloneHerder extends AbstractHerder {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof StandaloneHerderRequest))
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof StandaloneHerderRequest)) {
                 return false;
+            }
             StandaloneHerderRequest other = (StandaloneHerderRequest) o;
             return seq == other.seq;
         }

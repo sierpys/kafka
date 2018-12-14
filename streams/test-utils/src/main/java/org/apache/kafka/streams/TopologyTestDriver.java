@@ -660,6 +660,7 @@ public class TopologyTestDriver implements Closeable {
     /**
      * Close the driver, its topology, and all processors.
      */
+    @Override
     @SuppressWarnings("WeakerAccess")
     public void close() {
         if (task != null) {

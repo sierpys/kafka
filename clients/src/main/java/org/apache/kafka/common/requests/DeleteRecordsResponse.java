@@ -169,8 +169,9 @@ public class DeleteRecordsResponse extends AbstractResponse {
     @Override
     public Map<Errors, Integer> errorCounts() {
         Map<Errors, Integer> errorCounts = new HashMap<>();
-        for (PartitionResponse response : responses.values())
+        for (PartitionResponse response : responses.values()) {
             updateErrorCounts(errorCounts, response.error);
+        }
         return errorCounts;
     }
 

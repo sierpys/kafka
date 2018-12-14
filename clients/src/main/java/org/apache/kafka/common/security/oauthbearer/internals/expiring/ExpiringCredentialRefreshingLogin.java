@@ -223,8 +223,9 @@ public abstract class ExpiringCredentialRefreshingLogin {
             return loginContext;
         }
 
-        if (log.isDebugEnabled())
+        if (log.isDebugEnabled()) {
             log.debug("[Principal={}]: It is an expiring credential", principalLogText());
+        }
 
         /*
          * Re-login periodically. How often is determined by the expiration date of the
@@ -365,9 +366,11 @@ public abstract class ExpiringCredentialRefreshingLogin {
                 hasExpiringCredential = expiringCredential != null;
                 if (hasExpiringCredential)
                     // We can't force the removal because we don't know how to do it, so abort
+                {
                     throw new ExitRefresherThreadDueToIllegalStateException(String.format(
                             "Subject's private credentials still contains an instance of %s even though logout() was invoked; exiting refresh thread",
                             expiringCredential.getClass().getName()));
+                }
             }
             /*
              * Perform a login, making note of any credential that might need a logout()
@@ -380,8 +383,9 @@ public abstract class ExpiringCredentialRefreshingLogin {
                     principalName, optionalCredentialToLogout != null);
             loginContext.login();
             // Perform a logout() on any original credential if necessary
-            if (optionalCredentialToLogout != null)
+            if (optionalCredentialToLogout != null) {
                 optionalLoginContextToLogout.logout();
+            }
             /*
              * Get the new credential and make sure it is not any old one that required a
              * logout() after the login()
@@ -402,14 +406,16 @@ public abstract class ExpiringCredentialRefreshingLogin {
                     /*
                      * The login() didn't identify a new credential; we still have the old one. We
                      * don't know how to fix this, so abort.
-                     */
+                     */ {
                     throw new ExitRefresherThreadDueToIllegalStateException(String.format(
                             "Subject's private credentials still contains the previous, soon-to-expire instance of %s even though login() followed by logout() was invoked; exiting refresh thread",
                             expiringCredential.getClass().getName()));
+                }
                 principalName = expiringCredential.principalName();
-                if (log.isDebugEnabled())
+                if (log.isDebugEnabled()) {
                     log.debug("[Principal={}]: It is an expiring credential after re-login as expected",
                             principalLogText());
+                }
             }
         }
     }

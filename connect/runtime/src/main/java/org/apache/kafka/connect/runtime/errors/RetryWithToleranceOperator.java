@@ -193,7 +193,9 @@ public class RetryWithToleranceOperator {
     boolean withinToleranceLimits() {
         switch (errorToleranceType) {
             case NONE:
-                if (totalFailures > 0) return false;
+                if (totalFailures > 0) {
+                    return false;
+                }
             case ALL:
                 return true;
             default:

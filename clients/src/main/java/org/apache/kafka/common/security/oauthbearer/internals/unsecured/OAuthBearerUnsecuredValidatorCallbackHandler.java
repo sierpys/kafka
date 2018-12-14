@@ -107,12 +107,14 @@ public class OAuthBearerUnsecuredValidatorCallbackHandler implements Authenticat
     @SuppressWarnings("unchecked")
     @Override
     public void configure(Map<String, ?> configs, String saslMechanism, List<AppConfigurationEntry> jaasConfigEntries) {
-        if (!OAuthBearerLoginModule.OAUTHBEARER_MECHANISM.equals(saslMechanism))
+        if (!OAuthBearerLoginModule.OAUTHBEARER_MECHANISM.equals(saslMechanism)) {
             throw new IllegalArgumentException(String.format("Unexpected SASL mechanism: %s", saslMechanism));
-        if (Objects.requireNonNull(jaasConfigEntries).size() != 1 || jaasConfigEntries.get(0) == null)
+        }
+        if (Objects.requireNonNull(jaasConfigEntries).size() != 1 || jaasConfigEntries.get(0) == null) {
             throw new IllegalArgumentException(
                     String.format("Must supply exactly 1 non-null JAAS mechanism configuration (size was %d)",
                             jaasConfigEntries.size()));
+        }
         final Map<String, String> unmodifiableModuleOptions = Collections
                 .unmodifiableMap((Map<String, String>) jaasConfigEntries.get(0).getOptions());
         this.moduleOptions = unmodifiableModuleOptions;
@@ -121,8 +123,9 @@ public class OAuthBearerUnsecuredValidatorCallbackHandler implements Authenticat
 
     @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
-        if (!configured())
+        if (!configured()) {
             throw new IllegalStateException("Callback handler not configured");
+        }
         for (Callback callback : callbacks) {
             if (callback instanceof OAuthBearerValidatorCallback) {
                 OAuthBearerValidatorCallback validationCallback = (OAuthBearerValidatorCallback) callback;
@@ -134,8 +137,9 @@ public class OAuthBearerUnsecuredValidatorCallbackHandler implements Authenticat
                     validationCallback.error(failureScope != null ? "insufficient_scope" : "invalid_token",
                             failureScope, failureReason.failureOpenIdConfig());
                 }
-            } else
+            } else {
                 throw new UnsupportedCallbackException(callback);
+            }
         }
     }
 
@@ -146,8 +150,9 @@ public class OAuthBearerUnsecuredValidatorCallbackHandler implements Authenticat
 
     private void handleCallback(OAuthBearerValidatorCallback callback) {
         String tokenValue = callback.tokenValue();
-        if (tokenValue == null)
+        if (tokenValue == null) {
             throw new IllegalArgumentException("Callback missing required token value");
+        }
         String principalClaimName = principalClaimName();
         String scopeClaimName = scopeClaimName();
         List<String> requiredScope = requiredScope();
@@ -210,8 +215,9 @@ public class OAuthBearerUnsecuredValidatorCallbackHandler implements Authenticat
     }
 
     private String option(String key) {
-        if (!configured)
+        if (!configured) {
             throw new IllegalStateException("Callback handler not configured");
+        }
         return moduleOptions.get(Objects.requireNonNull(key));
     }
 }

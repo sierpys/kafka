@@ -128,13 +128,15 @@ public class WorkerConnector {
     }
 
     private void resume() {
-        if (doStart())
+        if (doStart()) {
             statusListener.onResume(connName);
+        }
     }
 
     private void start() {
-        if (doStart())
+        if (doStart()) {
             statusListener.onStartup(connName);
+        }
     }
 
     public boolean isRunning() {
@@ -168,8 +170,9 @@ public class WorkerConnector {
 
     public void shutdown() {
         try {
-            if (state == State.STARTED)
+            if (state == State.STARTED) {
                 connector.stop();
+            }
             this.state = State.STOPPED;
             statusListener.onShutdown(connName);
         } catch (Throwable t) {
@@ -191,10 +194,11 @@ public class WorkerConnector {
         if (targetState == TargetState.PAUSED) {
             pause();
         } else if (targetState == TargetState.STARTED) {
-            if (state == State.INIT)
+            if (state == State.INIT) {
                 start();
-            else
+            } else {
                 resume();
+            }
         } else {
             throw new IllegalArgumentException("Unhandled target state " + targetState);
         }
@@ -209,10 +213,12 @@ public class WorkerConnector {
     }
 
     protected String connectorType() {
-        if (isSinkConnector())
+        if (isSinkConnector()) {
             return "sink";
-        if (isSourceConnector())
+        }
+        if (isSourceConnector()) {
             return "source";
+        }
         return "unknown";
     }
 
